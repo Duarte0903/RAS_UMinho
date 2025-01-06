@@ -1,0 +1,34 @@
+.navbar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ff6f61;
+    min-height: 70px;
+    width: 100%;
+    z-index: 9999999;
+}
+
+.nav-title {
+    font-size: 2rem;
+    color: white;
+    margin-left: 20px;
+}
+
+.nav-links {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-right: 20px;
+}
+
+.nav-link {
+    color: white;
+    margin-left: 20px;
+    cursor: pointer;
+}
+
+.nav-icon {
+    width: 54px;
+}
