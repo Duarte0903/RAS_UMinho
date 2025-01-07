@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import JSZip from 'jszip';
 import './new_project_details.css';
 
 const NewProjectDetails = ({ onClose }) => {
+    const navigate = useNavigate();
+
+    const [projectName, setProjectName] = useState('');
     const [images, setImages] = useState([]);
 
     const handleDrop = (event) => {
@@ -56,9 +60,16 @@ const NewProjectDetails = ({ onClose }) => {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        if (images.length === 0) {
+        if (images.length === 0 || projectName === '') {
             return;
         }
+
+        console.log("Project Name:", projectName);
+        console.log("Images:", images);
+
+        // adicionar logica para colocar o projeto e imagens na bd
+        
+        navigate(`/project/1234`, { state: { projectName, images } });
     };
 
     const removeImageInput = (index) => {
@@ -78,7 +89,7 @@ const NewProjectDetails = ({ onClose }) => {
                     <h3>Novo Projeto</h3>
 
                     <form className='new-project-form' onSubmit={handleSubmit}>
-                        <input type="text" placeholder="Nome do Projeto" required className='form-input' />
+                        <input type="text" placeholder="Nome do Projeto" required className='form-input' value={projectName} onChange={(e) => setProjectName(e.target.value)} />
 
                         <h4>Carregar Imagens</h4>
                         <div

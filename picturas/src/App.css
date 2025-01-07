@@ -26,7 +26,7 @@ p {
   font-size: 1.5rem;
 }
 
-ul, li, button, a, fieldset, input, textarea {
+ul, li, button, a, fieldset, input[type="text"], textarea {
   all: unset;
 }
 
