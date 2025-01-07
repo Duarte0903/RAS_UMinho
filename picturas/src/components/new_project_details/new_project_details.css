@@ -1,0 +1,225 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10; 
+}
+
+.new-project-details-container {
+    background: white;
+    width: 50vw;
+    max-width: 800px;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.4);
+    position: relative;
+    animation: fadeIn 0.3s ease-in-out; 
+    z-index: 20; 
+}
+
+.close-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 35px;
+    height: 35px;
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 50%; 
+    font-size: 1.4rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.close-button:hover {
+    background-color: #ff1a1a; 
+    transform: scale(1.1); 
+}
+
+.close-button:active {
+    transform: scale(0.95); 
+}
+
+.new-project-details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-height: 70vh;
+    overflow-y: auto; 
+}
+
+.new-project-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 15px; 
+}
+
+.form-input {
+    width: 100%;
+    max-width: 600px;
+    padding: 12px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #f9f9f9;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-input:focus {
+    border-color: #0077cc;
+    box-shadow: 0 0 5px rgba(0, 119, 204, 0.5);
+    outline: none;
+}
+
+.file-input-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 600px;
+    padding: 10px;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    background-color: #fafafa;
+    transition: border-color 0.3s;
+}
+
+.file-input-wrapper:hover {
+    border-color: #0077cc;
+}
+
+.file-input-wrapper span {
+    font-size: 0.9rem;
+    color: #333;
+    margin-right: 10px;
+    flex: 1; 
+}
+
+.remove-button {
+    background-color: #e63946;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.remove-button:hover {
+    background-color: #d62828;
+}
+
+.new-project-form button[type="button"] {
+    background-color: #0077cc;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.2s;
+}
+
+.new-project-form button[type="button"]:hover {
+    background-color: #005fa3;
+    transform: scale(1.05);
+}
+
+/* Submit button */
+.new-project-form button[type="submit"] {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.2s;
+}
+
+.new-project-form button[type="submit"]:hover {
+    background-color: #218838;
+    transform: scale(1.05);
+}
+
+/* Drag-and-drop area */
+.drag-drop-area {
+    border: 2px dashed #0077cc;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #f0f8ff;
+    text-align: center;
+    margin-bottom: 15px;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.drag-drop-area:hover {
+    background-color: #e6f3ff;
+    border-color: #005fa3;
+}
+
+.drag-drop-area p {
+    font-size: 1rem;
+    color: #333;
+    margin: 0;
+}
+
+.file-preview {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 10px;
+}
+
+.file-preview span {
+    text-align: left;
+    flex-grow: 1; 
+}
+
+.remove-button {
+    background-color: #ff4d4d; 
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-left: 10px; 
+}
+
+.remove-button:hover {
+    background-color: #ff1a1a;
+}
+
+.image-preview-container {
+    margin-top: 20px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
