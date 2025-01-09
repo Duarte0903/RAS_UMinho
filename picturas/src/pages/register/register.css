@@ -1,4 +1,4 @@
-.login-container {
+.register-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -11,7 +11,7 @@
 }
 
 @media (min-width: 768px) {
-    .login-container {
+    .register-container {
         flex-direction: row;
         gap: 20%;
     }
@@ -24,7 +24,7 @@
     margin-bottom: 20px;
 }
 
-.login-content {
+.register-content {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -34,7 +34,7 @@
     box-sizing: border-box;
 }
 
-.login-form {
+.register-form {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -51,7 +51,7 @@ label {
     margin-bottom: 0.5rem;
 }
 
-.login-input {
+.register-input {
     width: 100%;
     padding: 0.75rem;
     margin-bottom: 1rem;
@@ -63,13 +63,13 @@ label {
     transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-.login-input:focus {
+.register-input:focus {
     border-color: #0077cc;
     box-shadow: 0 0 5px rgba(0, 119, 204, 0.5);
     outline: none;
 }
 
-.login-button {
+.register-button {
     width: 100%;
     padding: 0.75rem;
     border-radius: 8px;
@@ -82,7 +82,7 @@ label {
     transition: background-color 0.3s;
 }
 
-.login-button:hover {
+.register-button:hover {
     background-color: #ff7f71;
 }
 

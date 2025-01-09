@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { React, useState } from 'react';
 import './home.css';
 import Navbar from '../../components/navbar/navbar';
 import NewProject from '../../components/new_project/new_project';
 import NewProjectDetails from '../../components/new_project_details/new_project_details';
+import { useSessionStore } from '../../stores/session_store';
 
 const Home = () => {
+    const { user_name, user_id } = useSessionStore();
+
     const [show_new_project, set_new_project] = useState(false);
 
     const showNewProject = () => {
