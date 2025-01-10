@@ -5,6 +5,9 @@ import "aos/dist/aos.css";
 import Login from './pages/login/login';
 import Home from './pages/home/home';
 import Project from './pages/project/project';
+import Profile from './pages/profile/profile';
+import Plan from './pages/plan/plan';
+import Register from './pages/register/register';
 
 function App() {
   AOS.init({
@@ -21,8 +24,11 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/home" element={<Home />} />
         <Route path="/project/:project_id" element={<Project />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/plan" element={<Plan />} />
       </Routes>
     </>
   )

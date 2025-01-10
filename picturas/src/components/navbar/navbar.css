@@ -4,13 +4,12 @@
     justify-content: space-between;
     align-items: center;
     background-color: #ff6f61;
-    min-height: 70px;
     width: 100%;
     z-index: 9999999;
 }
 
 .nav-title {
-    font-size: 2rem;
+    font-size: 1.5rem;
     color: white;
     margin-left: 20px;
     cursor: pointer;
@@ -31,5 +30,5 @@
 }
 
 .nav-icon {
-    width: 54px;
+    width: 40px;
 }
