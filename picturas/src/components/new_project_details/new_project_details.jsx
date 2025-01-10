@@ -5,77 +5,88 @@ import './new_project_details.css';
 
 const NewProjectDetails = ({ onClose }) => {
     const navigate = useNavigate();
-
     const [projectName, setProjectName] = useState('');
     const [images, setImages] = useState([]);
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    const handleZipFile = async (file) => {
+        try {
+            const zipData = await file.arrayBuffer();
+            const zip = await JSZip.loadAsync(zipData);
+            const imageFiles = [];
+        
+            for (const [filename, fileData] of Object.entries(zip.files)) {
+                if (fileData.dir || !filename.match(/\.(jpg|jpeg|png|gif)$/i)) {
+                    continue;
+                }
+                
+                const blob = await fileData.async('blob');
+                
+                const imageFile = new File([blob], filename, {
+                    type: blob.type || 'image/jpeg'
+                });
+                
+                imageFiles.push(imageFile);
+            }
+        
+            return imageFiles;
+
+        } catch (error) {
+            console.error('Error processing ZIP file:', error);
+            return [];
+        }
+    };
+
+    const handleFiles = async (files) => {
+        setIsProcessing(true);
+        try {
+            const newImages = [];
+        
+            for (const file of files) {
+                if (file.type === 'application/zip' || file.type === 'application/x-zip-compressed') {
+                    const extractedImages = await handleZipFile(file);
+                    newImages.push(...extractedImages);
+                } 
+                
+                else if (file.type.startsWith('image/')) {
+                    newImages.push(file);
+                }
+            }    
+
+            setImages(prevImages => [...prevImages, ...newImages]);
+
+        } catch (error) {
+            console.error('Error handling files:', error);
+            alert('Erro ao processar os arquivos. Por favor, tente novamente.');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
 
     const handleDrop = (event) => {
         event.preventDefault();
         const files = Array.from(event.dataTransfer.files);
-        console.log('Files dropped:', files);
         handleFiles(files);
-    };
-
-    const handleFiles = (files) => {
-        files.forEach((file) => {
-            console.log('Processing file:', file.name);
-            if (file.type === 'application/zip') {
-                console.log('ZIP file detected, extracting images...');
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const zip = new JSZip();
-                    zip.loadAsync(e.target.result).then((contents) => {
-                        console.log('ZIP file loaded. Contents:', Object.keys(contents.files));
-                        
-                        const imageFiles = [];
-                        Object.keys(contents.files).forEach((filename) => {
-                            const file = contents.files[filename];
-                            console.log(`Found file in ZIP: ${filename}`);
-                            if (file.name.match(/\.(jpg|jpeg|png|gif)$/i)) {
-                                console.log(`Image found inside ZIP: ${file.name}`);
-                                imageFiles.push(file.async('blob').then((blob) => {
-                                    return new File([blob], file.name, { type: file.mimeType });
-                                }));
-                            }
-                        });
-
-                        Promise.all(imageFiles).then((extractedImages) => {
-                            console.log('All image files extracted:', extractedImages);
-                            setImages((prevImages) => [
-                                ...prevImages,
-                                ...extractedImages
-                            ]);
-                        });
-                    }).catch((error) => {
-                        console.error('Error extracting files from ZIP:', error);
-                    });
-                };
-                reader.readAsArrayBuffer(file);
-            } else if (file.type.startsWith('image/')) {
-                console.log('Direct image file selected:', file.name);
-                setImages((prevImages) => [...prevImages, file]);
-            }
-        });
     };
 
     const handleSubmit = (event) => {
         event.preventDefault();
+
+        if (isProcessing) {
+            alert('Ainda estamos a processar as imagens, por favor aguarde.');
+            return;
+        }
+        
         if (images.length === 0 || projectName === '') {
+            alert('Por favor, preencha o nome do projeto e carregue pelo menos uma imagem.');
             return;
         }
 
-        console.log("Project Name:", projectName);
-        console.log("Images:", images);
-
-        // adicionar logica para colocar o projeto e imagens na bd
-        
         navigate(`/project/1234`, { state: { projectName, images } });
     };
 
     const removeImageInput = (index) => {
-        console.log('Removing image at index:', index);
-        const updatedImages = images.filter((_, i) => i !== index);
-        setImages(updatedImages);
+        setImages(images.filter((_, i) => i !== index));
     };
 
     return (

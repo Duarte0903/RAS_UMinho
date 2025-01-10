@@ -6,30 +6,28 @@ import NewProjectDetails from '../../components/new_project_details/new_project_
 import { useSessionStore } from '../../stores/session_store';
 
 const Home = () => {
-    const { user_name, user_id } = useSessionStore();
+    const { user_name } = useSessionStore();
 
     const [show_new_project, set_new_project] = useState(false);
 
-    const showNewProject = () => {
+    const toggleNewProject = () => {
         set_new_project(!show_new_project);
     };
 
-    const closeNewProject = () => {
-        set_new_project(false);
-    };
-
     return (
-        <div>
+        <div className='home-wrapper'>
             <Navbar />
-            <div className='home-container'>
-                <h3>Bem vindo à PictuRAS</h3>
+            <main className='home-container'>
+                <h1>Bem-vindo à PictuRAS !</h1>
 
-                <div className='project-container'>
-                    <NewProject onClick={showNewProject} />
-                </div>
+                <section className='project-section'>
+                    <NewProject onClick={toggleNewProject} />
+                </section>
 
-                {show_new_project && <NewProjectDetails onClose={showNewProject} />}
-            </div>
+                {show_new_project && (
+                    <NewProjectDetails onClose={toggleNewProject} />
+                )}
+            </main>
         </div>
     );
 };
