@@ -1,52 +1,57 @@
-from PIL import Image
+from PIL import Image, ImageEnhance
 
 from .core.tool import Tool
-from .brightness_contrast_request_message import ResizeParameters
+from .brightness_contrast_request_message import BrightnessContrastParameters
 
 
 class BrightnessContrastTool(Tool):
 
     def __init__(
         self, 
-        default_resize_width: int = 300, 
-        default_resize_height: int = 200,
+        default_brightness: float = 1.0, 
+        default_contrast: float = 1.0,
     ) -> None:
         """
         Initialize the ResizeTool with default resize width and height.
 
         Args:
-            default_resize_width (int): Default width of the resize in pixels (e.g., 200, 720, 1080).
-            default_resize_height (int): Default height of the resize in pixels.
+            default_brightness (float): Default brightness of the filter (e.g., 0.2, 0.8, 1.2).
+            default_contrast (float): Default contrast of the filter.
         """
-        self.default_resize_width = default_resize_width
-        self.default_resize_height = default_resize_height
+        self.default_brightness = default_brightness
+        self.default_contrast = default_contrast
 
-    def apply(self, parameters: ResizeParameters):
+    def apply(self, parameters: BrightnessContrastParameters):
         """
-        Apply a resize (size change) to the input image and save the result.
+        Apply a filter (brightness/contrast change) to the input image and save the result.
 
         Args:
-            parameters (ResizeParameters): Parameters including input and output image URIs,
-                                          resize width, and resize height.
+            parameters (BrightnessContrastParameters): Parameters including input and output image URIs,
+                                          brightness and contrast values.
         """
         try:
             # Get resize width and height from parameters, falling back to defaults
-            resize_width = parameters.resizeWidth or self.default_resize_width
-            resize_height = parameters.resizeHeight or self.default_resize_height
-            new_size = (
-                int(resize_width),
-                int(resize_height)
+            brightness = parameters.brightness or self.default_brightness
+            contrast = parameters.contrast or self.default_contrast
+            new_filter = (
+                float(brightness),
+                float(contrast)
             )
 
             # Open the input image
             input_image = Image.open(parameters.inputImageURI)
 
-            # Resize the image            
-            final_image = input_image.resize(new_size)
+            # Aplica brilho
+            enhancer = ImageEnhance.Brightness(input_image)
+            final_image = enhancer.enhance(brightness)
+            
+            # Aplica contraste
+            enhancer = ImageEnhance.Contrast(final_image)
+            final_image = enhancer.enhance(contrast)
 
             # Save the output image
             final_image.save(parameters.outputImageURI)
-            print(f"Resize applied successfully. Output saved at: {parameters.outputImageURI}")
+            print(f"Brightness and contrast applied successfully. Output saved at: {parameters.outputImageURI}")
 
         except Exception as e:
-            print(f"Error applying resize: {e}")
+            print(f"Error applying filter: {e}")
