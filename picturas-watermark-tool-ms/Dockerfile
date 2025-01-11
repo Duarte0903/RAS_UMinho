@@ -22,6 +22,7 @@ ENV PICTURAS_LOG_LEVEL=WARN
 
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 
-COPY picturas_bezel_tool_ms ./picturas_bezel_tool_ms
+COPY picturas_watermark_tool_ms ./picturas_watermark_tool_ms
+COPY watermark.png ./
 
-ENTRYPOINT ["python", "-m", "picturas_bezel_tool_ms.main"]
+ENTRYPOINT ["python", "-m", "picturas_watermark_tool_ms.main"]

@@ -1,0 +1,68 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "15672:15672" # Optional. Makes RabbitMQ dashboard available on host: active for debug / management purposes
+      - "5672:5672"
+
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq/
+      - rabbitmq-logs:/var/log/rabbitmq/
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 5s
+      timeout: 30s
+
+  queue-setup:
+    build: ./queue/
+    container_name: queue-setup
+    restart: always
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+  minio:
+    image: minio/minio
+    container_name: minio
+    restart: always
+    ports:
+      - "9000:9000"       # MinIO API
+      - "9001:9001"       # MinIO Console
+    environment:
+      - MINIO_ROOT_USER=admin # MinIO root user
+      - MINIO_ROOT_PASSWORD=admin123 # MinIO root password
+    volumes:
+      - minio-data:/data   # Persistent storage for MinIO
+    command: server /data --console-address ":9001"
+
+
+  bezel-tool-ms:
+    build: ./picturas-bezel-tool-ms
+    container_name: bezel-tool-ms
+    restart: always
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+
+  watermark-tool-ms:
+    build: ./picturas-watermark-tool-ms
+    container_name: watermark-tool-ms
+    restart: always
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  rabbitmq-data:
+  rabbitmq-logs:
+  minio-data:
