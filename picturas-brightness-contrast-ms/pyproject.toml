@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "picturas-brightness-contrast-tool-ms"
+version = "0.1.0"
+description = "PictuRAS microservice (tool) that applies a brightness and contrast to an input image, generating a new output image with the specified changes."
+authors = ["Pedro Silva <a100745@alunos.uminho.pt>", "Duarte Leitão <pg57872@alunos.uminho.pt>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+pika = "^1.3.2"
+pydantic = "^2.10.3"
+pillow = "^11.0.0"
+poetry = "^2.0.0"
+
+
+[tool.poetry.group.dev.dependencies]
+yapf = "^0.43.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
