@@ -1,37 +1,37 @@
-# PictuRAS Resize Tool MS
+# PictuRAS Brightness and Contrast Tool MS
 
-This project implements the resize tool microservice for **PictuRAS**.
+This project implements the brightness and contrast tool microservice for **PictuRAS**.
 
-Processes image resizing requests asynchronously using a message queue.
+Processes image filter change requests asynchronously using a message queue.
 
 It is based on three main services:
 
 1. RabbitMQ message-broker: handles queuing of processing requests and returning results.
 2. request mocker: publishes mock requests to the queue.
-3. the resize tool microservice: processes the requests and publishes results.
+3. the brightness tool microservice: processes the requests and publishes results.
 
 > This project includes a `request mocker` under `usage_example` folder to ease development. The requests should eventually be produced by a _real microservice_ (e.g., a project management service).
 
-In detail, after a request is sent, one of the resize tool microservices reads it from their queue, applies the resizing, and saves the resized image. After having processed a given request, a `ResultMessage` is sent to `picturas.tools` _exchange_ under the `results` _routing key_.
+In detail, after a request is sent, one of the tool microservices reads it from their queue, applies the brightness and contrast changes, and saves the new image. After having processed a given request, a `ResultMessage` is sent to `picturas.tools` _exchange_ under the `results` _routing key_.
 
 ## Project structure
 
-1. **Resize microservice (`picturas_resize_tool_ms/`):**
+1. **Brightness and contrast microservice (`picturas_brightness_tool_ms/`):**
 
-   This folder contains the service logic for processing resize requests and applying resizes to images. It includes key modules such as:
+   This folder contains the service logic for processing brightness and contrast change requests and applying filters to images. It includes key modules such as:
 
    - `main.py`: The entry point of the microservice, instantiating tool specific classes and starting message processing.
    - `config.py`: Defines service-specific configurations, including the resize image and message queue endpoints.
-   - `resize_tool.py`: Implements the logic for resizing images, extending the reusable core components.
-   - `resize_request_message.py` & `resize_result_message.py`: Define format and data of resize request and result messages.
+   - `brightness_contrast_tool.py`: Implements the logic for changing the brightness and contrast of the images, extending the reusable core components.
+   - `brightness_contrast_request_message.py` & `brightness_contrast_result_message.py`: Define format and data of requests and result messages.
 
-2. **Core components (`picturas_resize_tool_ms/core/`):**
+2. **Core components (`picturas_brightness_tool_ms/core/`):**
 
    This folder contains generic, reusable modules designed to support multiple tools within the `PictuRAS` system, if wanted. These components abstract common functionalities, allowing them to be easily integrated into other tool microservices.
 
 3. **Usage Example (`usage_example/`):**
 
-   A demonstration environment that showcases how to use the resizing microservice.
+   A demonstration environment that showcases how to use the brightness and contrast microservice.
 
 This design emphasizes modularity, with reusable components in the `core/` folder that can accelerate development and standardize functionality across multiple tool microservices in the `PictuRAS` ecosystem.
 
@@ -48,7 +48,7 @@ This design emphasizes modularity, with reusable components in the `core/` folde
 
 ## Running _Usage example_
 
-Follow the steps below to run the usage example for the resizing microservice:
+Follow the steps below to run the usage example for the brightness and contrast microservice:
 
 1. Navigate to `usage_example` directory:
 
@@ -61,8 +61,8 @@ Follow the steps below to run the usage example for the resizing microservice:
    docker compose up
    ```
 
-This will start the resize tool microservice along with the message-broker and the request mocker.
-The request mocker will send sample resizing requests using the images provided in the `./images/src/` folder, and the processed images will be saved in the `./images/out/` folder.
+This will start the tool microservice along with the message-broker and the request mocker.
+The request mocker will send sample requests using the images provided in the `./images/src/` folder, and the processed images will be saved in the `./images/out/` folder.
 
 For further customization or testing, you can modify the request mocker script, or replace the sample images in the `./images/src/` folder.
 
@@ -97,7 +97,7 @@ source $(poetry env info --path)/bin/activate
 python -m usage_example.request_mocker.main
 ```
 
-2. Run resize tool in another bash
+2. Run the brightness and contrast tool in another bash
 
 ```bash
 source $(poetry env info --path)/bin/activate
