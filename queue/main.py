@@ -25,6 +25,16 @@ MICROSERVICES = {
         "routing_key": "requests.bezel",
         "procedure": "add_bezel",
     },
+    "binary": {
+        "queue": "binary-requests",
+        "routing_key": "requests.binary",
+        "procedure": "apply_binarization",
+    },
+    "brightness": {
+        "queue": "brightness-requests",
+        "routing_key": "requests.brightness",
+        "procedure": "apply_brightness",
+    },
     # Add new microservices here
 }
 
