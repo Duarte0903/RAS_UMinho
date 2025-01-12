@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 export const useSessionStore = create(
   persist(
@@ -28,7 +28,7 @@ export const useSessionStore = create(
     }),
     {
       name: 'session-storage',
-      storage: localStorage, 
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );
