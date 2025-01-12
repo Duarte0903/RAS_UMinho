@@ -160,7 +160,7 @@ if __name__ == "__main__":
 
         # Step 5: Publish a request to the Resize microservice
         resize_parameters = {
-            "inputImageURI": "s3://out/example_with_watermark.jpg",
+            "inputImageURI": "s3://out/example_with_brightness_contrast.jpg",
             "outputImageURI": "s3://out/example_with_resize.jpeg",
             "width": 300,
             "height": 200,

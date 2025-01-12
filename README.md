@@ -2,6 +2,9 @@
 
 A estrutura vai manter-se igual entre as várias pastas de microsserviços, vamos apontar apenas as alterações. Vamos utilizar o microsserviço de Binarização que neste momento está feito com base no exemplo dos profs e adaptar para a nossa estrutura.
 
+## poetry.lock && pyproject.toml && .style.yapf
+Copiem estes ficheiros de por exemplo picturas-binary-tool, se não vai dar erro.
+
 ## .env.example
 Alterar apenas os campos `RABBITMQ_REQUESTS_QUEUE_NAME` e `PICTURAS_MS_NAME` para o nome do microsserviço:
 
