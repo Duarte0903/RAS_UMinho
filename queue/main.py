@@ -41,6 +41,11 @@ MICROSERVICES = {
         "procedure": "resize",
     },
     # Add new microservices here
+    "removebg": {
+        "queue": "removebg-requests",
+        "routing_key": "requests.removebg",
+        "procedure": "removebg",
+    },
 }
 
 
