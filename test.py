@@ -125,6 +125,8 @@ if __name__ == "__main__":
         bezel_request_id = publish_request(channel, bezel_parameters, "add_bezel", "requests.bezel")
         # time.sleep(random.uniform(2, 5))
 
+        ########################################
+        
         # Generate URLs for Watermark processing
         watermark_output_image_url = s3_client.generate_presigned_url(
             "put_object", Params={"Bucket": "out", "Key": "example_with_watermark.jpg"}, ExpiresIn=3600
@@ -150,6 +152,20 @@ if __name__ == "__main__":
         }
 
         brightness_contrast_request_id = publish_request(channel, brightness_contrast_parameters, "apply_brightness", "requests.brightness")
+
+        # Generate URLs for Resize processing
+        resize_output_image_url = s3_client.generate_presigned_url(
+            "put_object", Params={"Bucket": "out", "Key": "example_with_resize.jpg"}, ExpiresIn=3600
+        )
+
+        # Step 5: Publish a request to the Resize microservice
+        resize_parameters = {
+            "inputImageURI": "s3://out/example_with_watermark.jpg",
+            "outputImageURI": "s3://out/example_with_resize.jpeg",
+            "width": 300,
+            "height": 200,
+        }
+        resize_request_id = publish_request(channel, resize_parameters, "resize", "requests.resize")
 
 
     finally:

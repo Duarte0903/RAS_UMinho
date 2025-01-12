@@ -34,6 +34,11 @@ MICROSERVICES = {
         "queue": "brightness-requests",
         "routing_key": "requests.brightness",
         "procedure": "apply_brightness",
+
+    "resize": {
+        "queue": "resize-requests",
+        "routing_key": "requests.resize",
+        "procedure": "resize",
     },
     # Add new microservices here
 }

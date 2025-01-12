@@ -6,11 +6,12 @@ authors = ["Ricardo Pereira <pg56001@alunos.di.uminho.pt>", "Diogo Araujo <pg559
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.13"
+python = "^3.11"
 pika = "^1.3.2"
 pydantic = "^2.10.3"
 pillow = "^11.0.0"
-poetry = "^2.0.0"
+boto3 = "^1.35.97"
+
 
 
 [tool.poetry.group.dev.dependencies]
