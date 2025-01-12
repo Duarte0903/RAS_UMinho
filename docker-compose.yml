@@ -62,6 +62,17 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  resize-tool-ms:
+    build: ./picturas-resize-tool-ms
+    container_name: resize-tool-ms
+    restart: always
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
 volumes:
   rabbitmq-data:
   rabbitmq-logs:

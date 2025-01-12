@@ -8,18 +8,18 @@ class ResizeTool(Tool):
 
     def __init__(
         self, 
-        default_resize_width: int = 300, 
-        default_resize_height: int = 200,
+        default_width: int = 300, 
+        default_height: int = 200,
     ) -> None:
         """
         Initialize the ResizeTool with default resize width and height.
 
         Args:
-            default_resize_width (int): Default width of the resize in pixels (e.g., 200, 720, 1080).
-            default_resize_height (int): Default height of the resize in pixels.
+            default_width (int): Default width of the resize in pixels (e.g., 200, 720, 1080).
+            default_height (int): Default height of the resize in pixels.
         """
-        self.default_resize_width = default_resize_width
-        self.default_resize_height = default_resize_height
+        self.default_width = default_width
+        self.default_height = default_height
 
     def apply(self, parameters: ResizeParameters):
         """
@@ -31,18 +31,14 @@ class ResizeTool(Tool):
         """
         try:
             # Get resize width and height from parameters, falling back to defaults
-            resize_width = parameters.resizeWidth or self.default_resize_width
-            resize_height = parameters.resizeHeight or self.default_resize_height
-            new_size = (
-                int(resize_width),
-                int(resize_height)
-            )
+            width = parameters.width or self.default_width
+            height = parameters.height or self.default_height
 
             # Open the input image
             input_image = Image.open(parameters.inputImageURI)
 
             # Resize the image            
-            final_image = input_image.resize(new_size)
+            final_image = input_image.resize((width, height))
 
             # Save the output image
             final_image.save(parameters.outputImageURI)

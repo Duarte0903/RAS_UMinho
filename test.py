@@ -113,6 +113,8 @@ if __name__ == "__main__":
         bezel_response = wait_for_response(channel, bezel_request_id)
         LOGGER.info("Bezel processing completed: %s", bezel_response)
 
+        ########################################
+        
         # Generate URLs for Watermark processing
         watermark_output_image_url = s3_client.generate_presigned_url(
             "put_object", Params={"Bucket": "out", "Key": "example_with_watermark.jpg"}, ExpiresIn=3600
@@ -128,6 +130,26 @@ if __name__ == "__main__":
         # Step 4: Wait for Watermark response
         watermark_response = wait_for_response(channel, watermark_request_id)
         LOGGER.info("Watermark processing completed: %s", watermark_response)
+        
+        #####################################
+        
+        # Generate URLs for Resize processing
+        resize_output_image_url = s3_client.generate_presigned_url(
+            "put_object", Params={"Bucket": "out", "Key": "example_with_resize.jpg"}, ExpiresIn=3600
+        )
+
+        # Step 5: Publish a request to the Resize microservice
+        resize_parameters = {
+            "inputImageURI": "s3://out/example_with_watermark.jpg",
+            "outputImageURI": "s3://out/example_with_resize.jpeg",
+            "width": 300,
+            "height": 200,
+        }
+        resize_request_id = publish_request(channel, resize_parameters, "resize", "requests.resize")
+
+        # Step 6: Wait for Resize response
+        resize_response = wait_for_response(channel, resize_request_id)
+        LOGGER.info("Resize processing completed: %s", resize_response)
 
     finally:
         connection.close()

@@ -25,6 +25,11 @@ MICROSERVICES = {
         "routing_key": "requests.bezel",
         "procedure": "add_bezel",
     },
+    "resize": {
+        "queue": "resize-requests",
+        "routing_key": "requests.resize",
+        "procedure": "resize",
+    },
     # Add new microservices here
 }
 
