@@ -1,6 +1,8 @@
 import json
 import logging
 import os
+import random
+import time
 import uuid
 from datetime import datetime
 import pika
@@ -92,26 +94,36 @@ if __name__ == "__main__":
     connection, channel = message_queue_connect()
 
     try:
-        # Generate URLs for Bezel processing
-        bezel_input_image_url = s3_client.generate_presigned_url(
-            "get_object", Params={"Bucket": "src", "Key": "daad.jpg"}, ExpiresIn=3600
+        # Generate URLs for Binarization processing
+        binarization_input_image_url = s3_client.generate_presigned_url(
+            "get_object", Params={"Bucket": "src", "Key": "464938869_27507174692263510_3980376697904592133_n.jpg"}, ExpiresIn=3600
         )
+        binarization_output_image_url = s3_client.generate_presigned_url(
+            "put_object", Params={"Bucket": "out", "Key": "example_binarized.jpg"}, ExpiresIn=3600
+        )
+
+        # Step 1: Publish a request to the Binarization microservice
+        binarization_parameters = {
+            "inputImageURI": "s3://src/464938869_27507174692263510_3980376697904592133_n.jpg",
+            "outputImageURI": "s3://out/example_binarized.jpg",
+        }
+        binarization_request_id = publish_request(channel, binarization_parameters, "apply_binarization", "requests.binary")
+        # time.sleep(random.uniform(2, 5))
+
+        # Generate URLs for Bezel processing
         bezel_output_image_url = s3_client.generate_presigned_url(
             "put_object", Params={"Bucket": "out", "Key": "example_with_bezel.jpg"}, ExpiresIn=3600
         )
 
-        # Step 1: Publish a request to the Bezel microservice
+        # Step 3: Publish a request to the Bezel microservice
         bezel_parameters = {
-            "inputImageURI": "s3://src/daad.jpg",
+            "inputImageURI": "s3://out/example_binarized.jpg",  # Output from binarization
             "outputImageURI": "s3://out/example_with_bezel.jpg",
             "bezelColor": "blue",
             "bezelThickness": 10,
         }
         bezel_request_id = publish_request(channel, bezel_parameters, "add_bezel", "requests.bezel")
-
-        # Step 2: Wait for Bezel response
-        bezel_response = wait_for_response(channel, bezel_request_id)
-        LOGGER.info("Bezel processing completed: %s", bezel_response)
+        # time.sleep(random.uniform(2, 5))
 
         ########################################
         
@@ -120,19 +132,27 @@ if __name__ == "__main__":
             "put_object", Params={"Bucket": "out", "Key": "example_with_watermark.jpg"}, ExpiresIn=3600
         )
 
-        # Step 3: Publish a request to the Watermark microservice
+        # Step 5: Publish a request to the Watermark microservice
         watermark_parameters = {
-            "inputImageURI": "s3://out/example_with_bezel.jpg",
+            "inputImageURI": "s3://out/example_with_bezel.jpg",  # Output from bezel
             "outputImageURI": "s3://out/example_with_watermark.jpeg",
         }
         watermark_request_id = publish_request(channel, watermark_parameters, "add_watermark", "requests.watermark")
+        # time.sleep(random.uniform(2, 5))
 
-        # Step 4: Wait for Watermark response
-        watermark_response = wait_for_response(channel, watermark_request_id)
-        LOGGER.info("Watermark processing completed: %s", watermark_response)
-        
-        #####################################
-        
+        brightness_contrast_output_image_url = s3_client.generate_presigned_url(
+            "put_object", Params={"Bucket": "out", "Key": "example_with_brightness_contrast.jpg"}, ExpiresIn=3600
+        )
+
+        brightness_contrast_parameters = {
+            "inputImageURI": "s3://out/example_with_watermark.jpeg",  # Output from watermark
+            "outputImageURI": "s3://out/example_with_brightness_contrast.jpg",
+            "brightness": 1.5,
+            "contrast": 1.5,
+        }
+
+        brightness_contrast_request_id = publish_request(channel, brightness_contrast_parameters, "apply_brightness", "requests.brightness")
+
         # Generate URLs for Resize processing
         resize_output_image_url = s3_client.generate_presigned_url(
             "put_object", Params={"Bucket": "out", "Key": "example_with_resize.jpg"}, ExpiresIn=3600
@@ -147,9 +167,7 @@ if __name__ == "__main__":
         }
         resize_request_id = publish_request(channel, resize_parameters, "resize", "requests.resize")
 
-        # Step 6: Wait for Resize response
-        resize_response = wait_for_response(channel, resize_request_id)
-        LOGGER.info("Resize processing completed: %s", resize_response)
 
     finally:
         connection.close()
+
