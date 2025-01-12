@@ -95,6 +95,17 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  removebg-tool-ms:
+    build: ./picturas-removebg-tool-ms
+    container_name: removebg-tool-ms
+    restart: always
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
 volumes:
   rabbitmq-data:
   rabbitmq-logs:
