@@ -80,9 +80,8 @@ router.get('/users/:user_id/projects/:proj_id/images', function (req, res, next)
         })
 });
 
-router.delete('/users/:user_id/projects/:proj_id/images', function (req, res, next) {
-    console.log('body: ', req.body);
-    projects.delete_images(req.query.proj_id, req.body.images)
+router.delete('/users/:user_id/projects/:proj_id/images/image_id', function (req, res, next) {
+    projects.delete_image(req.query.proj_id, req.query.image_id)
         .then((result) => {
             res.jsonp(result);
         }).catch((err) => {

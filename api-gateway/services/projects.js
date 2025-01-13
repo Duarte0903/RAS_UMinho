@@ -88,8 +88,8 @@ module.exports.get_images = (proj_id) => {
         }); 
 }
 
-module.exports.delete_images = (proj_id, images) => {
-    return axios.delete(this.projectsRoute('/projects/' + proj_id + '/images'), { "images": images })
+module.exports.delete_image = (proj_id, image_id) => {
+    return axios.delete(this.projectsRoute('/projects/' + proj_id + '/images/' + image_id))
         .then((result) => {
             let resp = result.data
             if (resp != null) {
