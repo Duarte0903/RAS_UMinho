@@ -14,8 +14,8 @@ COPY . .
 #RUN apt-get update && apt-get install -y redis-server && apt-get clean
 
 # Exponha a porta que a aplicação e o Redis irão usar
-EXPOSE 7001 
-#EXPOSE 7001 6999
+EXPOSE 7000 
+#EXPOSE 7000 6999
 
 # Comando para iniciar o Redis em segundo plano e depois iniciar a aplicação
 #CMD ["sh", "-c", "redis-server --daemonize yes && npm start"]

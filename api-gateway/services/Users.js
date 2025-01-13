@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-module.exports.usersAccessPoint = process.env.USERS_AP || 'http://localhost:7778';
+module.exports.usersAccessPoint = process.env.USERS_AP || 'http://localhost:7001';
 module.exports.usersRoute = (route) => this.usersAccessPoint + route
 
 

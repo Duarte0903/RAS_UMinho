@@ -20,6 +20,16 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Limitar meio rudimentar por agora
+// Set up rate limiter: maximum of one hundred requests per minute
+const limiter = RateLimit({
+    windowMs: 10 * 1000, // 10 seconds
+    max: 100,
+});
+// Apply rate limiter to all requests
+app.use(limiter);
+
+// TODO tentar implementar limiter mais complexo
 // Adicionando o middleware ao app
 //app.use(limiter.rateLimiterMiddleware);
 
