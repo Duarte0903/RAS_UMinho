@@ -40,6 +40,11 @@ MICROSERVICES = {
         "routing_key": "requests.resize",
         "procedure": "resize",
     },
+    "rotation": {
+        "queue": "rotation-requests",
+        "routing_key": "requests.rotation",
+        "procedure": "apply_rotation",
+    },
     # Add new microservices here
     "removebg": {
         "queue": "removebg-requests",
