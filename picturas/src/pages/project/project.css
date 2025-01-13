@@ -215,10 +215,8 @@
     border-radius: 4px;
 }
 
-.download-button {
-    position: absolute;
-    top: 32px;
-    right: 32px;
+.download-button,
+.add-image-button {
     padding: 8px 16px;
     background-color: white;
     color: #0284c7;
@@ -235,24 +233,23 @@
     margin-right: 32px; 
 }
 
-.download-button:hover {
+.download-button:hover,
+.add-image-button:hover {
     background-color: #e0f2fe;
 }
 
-.download-button svg {
+.download-button svg,
+.add-image-button svg {
     width: 16px;
     height: 16px;
     stroke: currentColor;
 }
 
 .image-buttons {
-    position: absolute;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
     display: flex;
     gap: 12px;
     z-index: 10;
+    margin-top: 10px;
 }
 
 .image-buttons button {
@@ -269,6 +266,40 @@
 
 .image-buttons button:hover {
     background-color: #e0f2fe;
+}
+
+.images-mnt-buttons-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.edit-icon {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    margin-left: 5px;
+}
+ 
+.edit-icon:hover {
+    cursor: pointer;
+    opacity: 1;
+}
+
+.project-name-input {
+    width: 100%;
+    padding: 4px 8px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    outline: none;
+}
+
+.project-name-input:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px #bae6fd;
 }
 
 @media (max-width: 768px) {
