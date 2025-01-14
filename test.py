@@ -125,6 +125,22 @@ if __name__ == "__main__":
         bezel_request_id = publish_request(channel, bezel_parameters, "add_bezel", "requests.bezel")
         # time.sleep(random.uniform(2, 5))
 
+        # Generate URLs for GrayScale processing
+        grayscale_input_image_url = s3_client.generate_presigned_url(
+            "get_object", Params={"Bucket": "src", "Key": "grayscale_input.jpg"}, ExpiresIn=3600
+        )
+        grayscale_output_image_url = s3_client.generate_presigned_url(
+            "put_object", Params={"Bucket": "out", "Key": "example_grayscale.jpg"}, ExpiresIn=3600
+        )
+
+        # Step 1: Publish a request to the GrayScale microservice
+        grayscale_parameters = {
+            "inputImageURI": "s3://src/grayscale_input.jpg",
+            "outputImageURI": "s3://out/example_grayscale.jpg",
+        }
+        grayscale_request_id = publish_request(channel, grayscale_parameters, "apply_grayscale", "requests.grayscale")
+        # time.sleep(random.uniform(2, 5))
+
         ########################################
         
         # Generate URLs for Watermark processing

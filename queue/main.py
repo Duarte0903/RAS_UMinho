@@ -46,6 +46,11 @@ MICROSERVICES = {
         "routing_key": "requests.removebg",
         "procedure": "removebg",
     },
+    "grayscale": {
+        "queue": "grayscale-requests",
+        "routing_key": "requests.grayscale",
+        "procedure": "grayscale",
+    },
 }
 
 

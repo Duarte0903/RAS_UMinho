@@ -105,6 +105,17 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+  
+  grayscale-tool-ms:
+    build: ./picturas-grayscale-tool-ms
+    container_name: grayscale-tool-ms
+    restart: always
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
 volumes:
   rabbitmq-data:
