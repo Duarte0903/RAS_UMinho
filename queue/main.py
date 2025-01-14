@@ -40,22 +40,22 @@ MICROSERVICES = {
         "routing_key": "requests.resize",
         "procedure": "resize",
     },
-    "rotation": {
-        "queue": "rotation-requests",
-        "routing_key": "requests.rotation",
-        "procedure": "apply_rotation",
-    },
     # Add new microservices here
     "removebg": {
         "queue": "removebg-requests",
         "routing_key": "requests.removebg",
         "procedure": "removebg",
     },
-    "grayscale": {
+    "rotation":{
+        "queue": "rotation-requests",
+        "routing_key": "requests.rotation",
+        "procedure": "rotation",
+    },
+        "grayscale": {
         "queue": "grayscale-requests",
         "routing_key": "requests.grayscale",
         "procedure": "grayscale",
-    },
+    }
 }
 
 

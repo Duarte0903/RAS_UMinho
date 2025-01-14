@@ -73,18 +73,19 @@ class ResizeTool(Tool):
             print(f"Error applying resize: {e}")
 
     @staticmethod
-    def parse_s3_uri(s3_uri):
+    def parse_s3_uri(uri):
         """
-        Parse an S3 URI into bucket and key.
+        Parse a URI into bucket and key by splitting on '/'.
 
         Args:
-            s3_uri (str): S3 URI (e.g., s3://bucket/key).
+            uri (str): URI in the format 'bucket/key'.
 
         Returns:
             tuple: (bucket, key)
         """
-        if not s3_uri.startswith("s3://"):
-            raise ValueError(f"Invalid S3 URI: {s3_uri}")
-        _, _, bucket, *key_parts = s3_uri.split("/")
-        return bucket, "/".join(key_parts)
+        parts = uri.split("/", 1)  # Split into bucket and key
+        if len(parts) != 2:
+            raise ValueError(f"Invalid URI format: {uri}")
 
+        bucket, key = parts
+        return bucket, key

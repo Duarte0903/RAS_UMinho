@@ -33,7 +33,7 @@ class RemovebgTool(Tool):
     def apply(self, parameters: RemovebgParameters):
         """
         Apply the rembg to the input image and save the result.
-
+    
         Args:
             parameters (RemovebgParameters): removebg parameters.
         """
@@ -41,52 +41,55 @@ class RemovebgTool(Tool):
             # Parse input and output bucket/key from URIs
             input_bucket, input_key = self.parse_s3_uri(parameters.inputImageURI)
             output_bucket, output_key = self.parse_s3_uri(parameters.outputImageURI)
-
+    
             # Download the input image from MinIO
             LOGGER.info("Downloading input image from MinIO: %s/%s", input_bucket, input_key)
             input_obj = self.s3_client.get_object(Bucket=input_bucket, Key=input_key)
             input_image = Image.open(BytesIO(input_obj['Body'].read()))
-
+    
             # Convert the input image to a numpy array
             input_array = np.array(input_image)
-
+    
             # Removing background using rembg
             LOGGER.info("Removing Background from the image.")
             output_array = rembg.remove(input_array)
-
+    
             # Create a PIL Image from the output array
             final_image = Image.fromarray(output_array)
-
-
+    
+            # If the image has an alpha channel (RGBA), convert it to RGB
+            if final_image.mode == "RGBA":
+                final_image = final_image.convert("RGB")
+    
             # Save the processed image to MinIO
             LOGGER.info("Uploading processed image to MinIO: %s/%s", output_bucket, output_key)
             buffer = BytesIO()
             final_image.save(buffer, format="JPEG")  # Adjust format if needed
             buffer.seek(0)
-
+    
             self.s3_client.put_object(Bucket=output_bucket, Key=output_key, Body=buffer)
             LOGGER.info("Background removed successfully and image saved to MinIO.")
-
+    
         except Exception as e:
             LOGGER.error("Error removing background or uploading to MinIO: %s", e)
             raise
 
 
+
     @staticmethod
-    def parse_s3_uri(s3_uri):
+    def parse_s3_uri(uri):
         """
-        Parse an S3 URI into bucket and key.
+        Parse a URI into bucket and key by splitting on '/'.
 
         Args:
-            s3_uri (str): S3 URI (e.g., s3://bucket/key).
+            uri (str): URI in the format 'bucket/key'.
 
         Returns:
             tuple: (bucket, key)
         """
-        if not s3_uri.startswith("s3://"):
-            raise ValueError(f"Invalid S3 URI: {s3_uri}")
-        _, _, bucket, *key_parts = s3_uri.split("/")
-        return bucket, "/".join(key_parts)
+        parts = uri.split("/", 1)  # Split into bucket and key
+        if len(parts) != 2:
+            raise ValueError(f"Invalid URI format: {uri}")
 
-
-
+        bucket, key = parts
+        return bucket, key

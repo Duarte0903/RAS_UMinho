@@ -81,7 +81,7 @@ class MessageProcessor:
             start_ts = time.time()
 
             try:
-                LOGGER.info("Starting bezel application with parameters: %s", request_msg.parameters)
+                LOGGER.info("Starting Grayscale application with parameters: %s", request_msg.parameters)
                 tool_result = self.tool.apply(request_msg.parameters)
             except Exception as e:
                 exception = e
