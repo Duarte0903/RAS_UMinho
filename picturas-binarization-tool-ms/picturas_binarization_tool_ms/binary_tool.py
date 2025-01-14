@@ -39,6 +39,8 @@ class BinaryTool(Tool):
         # Parse input and output bucket/key from URIs
         input_bucket, input_key = self.parse_s3_uri(parameters.inputImageURI)
         output_bucket, output_key = self.parse_s3_uri(parameters.outputImageURI)
+        threshold = parameters.threshold  # Threshold value (0-255)
+
 
         # Download the input image from MinIO
         LOGGER.info("Downloading input image from MinIO: %s/%s", input_bucket, input_key)
@@ -47,9 +49,11 @@ class BinaryTool(Tool):
 
         # Convert image to grayscale
         grayscale_image = input_image.convert("L")  # L mode is grayscale
-        final_image = grayscale_image.convert("RGB")
+        binarized_image = grayscale_image.point(lambda p: 255 if p > threshold else 0, mode="1")
 
-        final_image = grayscale_image.convert("RGB")
+        # Convert back to RGB for saving
+        final_image = binarized_image.convert("RGB")
+
         LOGGER.info("Uploading processed image to MinIO: %s/%s", output_bucket, output_key)
         buffer = BytesIO()
         final_image.save(buffer, format="JPEG")  # Adjust format if needed

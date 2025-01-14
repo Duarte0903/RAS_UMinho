@@ -106,6 +106,7 @@ if __name__ == "__main__":
         binarization_parameters = {
             "inputImageURI": "s3://src/464938869_27507174692263510_3980376697904592133_n.jpg",
             "outputImageURI": "s3://out/example_binarized.jpg",
+            "threshold": 128,
         }
         binarization_request_id = publish_request(channel, binarization_parameters, "apply_binarization", "requests.binary")
         # time.sleep(random.uniform(2, 5))
