@@ -19,7 +19,8 @@ module.exports.get_projects = (user_id) => {
 }
 
 module.exports.create_project = (user_id, name) => {
-    return axios.post(this.projectsRoute('/projects'), { "user_id": user_id, "name": name })
+    let body = { "user_id": user_id, "name": name };
+    return axios.post(this.projectsRoute('/projects'), body)
         .then((result) => {
             let resp = result.data
             if (resp != null) {
@@ -33,7 +34,8 @@ module.exports.create_project = (user_id, name) => {
 }
 
 module.exports.update_project = (proj_id, name) => {
-    return axios.put(this.projectsRoute('/projects/' + proj_id), { "name": name })
+    let body = { "name": name };
+    return axios.put(this.projectsRoute('/projects/' + proj_id), body)
         .then((result) => {
             let resp = result.data
             if (resp != null) {
@@ -61,7 +63,8 @@ module.exports.delete_project = (proj_id) => {
 }
 
 module.exports.upload_images = (proj_id, images) => {
-    return axios.post(this.projectsRoute('/projects/' + proj_id + '/images'), { "images": images })
+    let body = { "images": images };
+    return axios.post(this.projectsRoute('/projects/' + proj_id + '/images'), body)
         .then((result) => {
             let resp = result.data
             if (resp != null) {
@@ -103,7 +106,8 @@ module.exports.delete_image = (proj_id, image_id) => {
 }
 
 module.exports.add_tools = (proj_id, tools) => {
-    return axios.post(this.projectsRoute('/projects/' + proj_id + '/tools'), { "tools": tools })
+    let body = { "tools": tools };
+    return axios.post(this.projectsRoute('/projects/' + proj_id + '/tools'), body)
         .then((result) => {
             let resp = result.data
             if (resp != null) {
@@ -117,8 +121,8 @@ module.exports.add_tools = (proj_id, tools) => {
 }
 
 module.exports.update_tool = (proj_id, tool_id, position, procedure, parameters) => {
-    return axios.put(this.projectsRoute('/projects/' + proj_id + '/tools/' + tool_id),
-        { "position": position, "procedure": procedure, "parameters": parameters })
+    let body = { "position": position, "procedure": procedure, "parameters": parameters };    
+    return axios.put(this.projectsRoute('/projects/' + proj_id + '/tools/' + tool_id), body)
             .then((result) => {
                 let resp = result.data
                 if (resp != null) {
