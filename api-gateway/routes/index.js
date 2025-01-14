@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const { validateJWT } = require('../authentication/authentication');
 
 const users = require('../services/users');
 const subscriptions = require('../services/subscriptions');
 const projects = require('../services/projects');
-const { validateJWT } = require('../authentication/authentication');
+
 
 // ------------ USERS ------------
 
@@ -70,15 +71,27 @@ router.get('/users/subscriptions', validateJWT, function (req, res, next) {
         })
 });
 
+router.post('/users/subscriptions', validateJWT, function (req, res, next) {
+    console.log('body: ', req.body);
+    subscriptions.create_subscription(
+        req.headers,
+        req.body.type,
+        req.body.state
+    ).then((result) => {
+            res.jsonp(result);
+        }).catch((err) => {
+            res.status(500).jsonp({ msg: err.message });
+        })
+});
+
 router.put('/users/subscriptions/:subs_id', validateJWT, function (req, res, next) {
+    console.log('body: ', req.body);
     subscriptions.update_subscription(
         req.headers,
         req.params.subs_id,
         req.body.type,
-        req.body.state,
-        req.body.inserted_at
-    )
-        .then((result) => {
+        req.body.state
+    ).then((result) => {
             res.jsonp(result);
         }).catch((err) => {
             res.status(500).jsonp({ msg: err.message });
@@ -103,8 +116,28 @@ router.get('/users/subscriptions/:subs_id/payments', validateJWT, function (req,
         })
 });
 
-router.post('/users/:user_id/subscriptions/:subs_id/payments', validateJWT, function (req, res, next) {
-    subscriptions.save_payment(req.headers, req.params.subs_id, req.body.extra)
+router.post('/users/subscriptions/:subs_id/payments', validateJWT, function (req, res, next) {
+    console.log('body: ', req.body);
+    subscriptions.create_payment(req.headers, req.params.subs_id, req.body.extra)
+        .then((result) => {
+            res.jsonp(result);
+        }).catch((err) => {
+            res.status(500).jsonp({ msg: err.message });
+        })
+});
+
+router.put('/users/subscriptions/:subs_id/payments/:pay_id', validateJWT, function (req, res, next) {
+    console.log('body: ', req.body);
+    subscriptions.update_payment(req.headers, req.params.subs_id, req.params.pay_id, req.body.extra)
+        .then((result) => {
+            res.jsonp(result);
+        }).catch((err) => {
+            res.status(500).jsonp({ msg: err.message });
+        })
+});
+
+router.delete('/users/subscriptions/:subs_id/payments/:pay_id', validateJWT, function (req, res, next) {
+    subscriptions.delete_payment(req.headers, req.params.subs_id, req.params.pay_id)
         .then((result) => {
             res.jsonp(result);
         }).catch((err) => {
