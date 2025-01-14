@@ -58,7 +58,7 @@ class ToolService:
         tools = Tool.query.filter_by(project_id=project_id).order_by(Tool.position.asc()).all()
         return [tool.to_dict() for tool in tools]
     
-
+    @staticmethod
     def update_tool(tool_id, project_id, updates):
         """
         Update a tool's configuration, including position adjustments.

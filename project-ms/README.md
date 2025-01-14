@@ -97,7 +97,7 @@ Replace `<JWT_TOKEN>` with a valid JSON Web Token.
   ```json
   {
       "position": 1,
-      "procedure":"bezel"
+      "procedure":"bezel",
       "parameters": {
           "key1": "value1",
           "key2": "value2"
@@ -113,7 +113,8 @@ Replace `<JWT_TOKEN>` with a valid JSON Web Token.
   ```json
   {
       "position": 2,
-      "configuration": {
+      "procedure":"bezel",
+      "parameters": {
           "key1": "new_value1",
           "key2": "new_value2"
       }
