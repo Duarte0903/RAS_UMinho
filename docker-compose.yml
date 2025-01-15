@@ -101,6 +101,55 @@ services:
         condition: service_healthy
 
 
+  mongodb-subscriptions:
+    image: mongo:6.0  # Usa a imagem oficial do MongoDB (verifica a versão que queres usar)
+    container_name: mongodb-subscriptions
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: subscriptions  # Nome da base de dados inicial
+      MONGO_INITDB_ROOT_USERNAME: picturas
+      MONGO_INITDB_ROOT_PASSWORD: picturas
+    ports:
+      - "27018:27017"  # Mapeia a porta do host (27018) para a porta padrão do MongoDB (27017)
+    volumes:
+      - mongodb-subscriptions-data:/data/db  # Volume para persistir os dados
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --eval 'db.adminCommand(\"ping\")' -u picturas -p picturas --authenticationDatabase admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  subscriptions-ms:
+    build: ./subscriptions-ms
+    container_name: subscriptions-ms
+    restart: always
+    ports:
+      - "5002:5002"
+    environment:
+      - MONGO_URI: mongodb://picturas:picturas@mongodb-subscriptions:27017/ras?authSource=admin
+    depends_on:
+      mongodb-subscriptions:
+        condition: service_healthy
+
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    restart: always
+    ports:
+      - "5003:5003"
+    environment:
+      - SERVER_PORT=5003
+      - SECRET_KEY=picturas  # change / remove in production
+      - PROJECTS_AP=http://localhost:5000  
+      - SUBSCRIPTIONS_AP=http://localhost:5001  
+      - USERS_AP=http://localhost:5002
+    depends_on:
+      auth-ms:
+      project-ms:
+      subscriptions-ms:
+
+
   bezel-tool-ms:
     build: ./picturas-bezel-tool-ms
     container_name: bezel-tool-ms
@@ -189,9 +238,11 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+
 volumes:
   rabbitmq-data:
   rabbitmq-logs:
   minio-data:
   postgres-project-data:
   postgres-auth-data:
+  mongodb-subscriptions-data:

@@ -4,10 +4,11 @@ const session = require('express-session');
 const logger = require('morgan');
 
 const mongoose = require('mongoose');
-const mongoDB = 'mongodb://localhost:27017/ras';
+const mongoDB = process.env.MONGO_URI || 'mongodb://mongodb-subscriptions:27017/ras';
 mongoose.connect(mongoDB, {
     serverSelectionTimeoutMS: 5000
 });
+
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 db.once('open', function() {
