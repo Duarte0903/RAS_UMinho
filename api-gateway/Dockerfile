@@ -10,13 +10,8 @@ RUN npm install
 # Copia o código da aplicação para dentro da imagem
 COPY . .
 
-# Instala o Redis
-#RUN apt-get update && apt-get install -y redis-server && apt-get clean
+# Exponha a porta que a aplicação irá usar
+EXPOSE 5003
 
-# Exponha a porta que a aplicação e o Redis irão usar
-EXPOSE 7000 
-#EXPOSE 7000 6999
-
-# Comando para iniciar o Redis em segundo plano e depois iniciar a aplicação
-#CMD ["sh", "-c", "redis-server --daemonize yes && npm start"]
+# Comando para iniciar a aplicação
 CMD ["npm", "start"]

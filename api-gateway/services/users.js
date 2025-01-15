@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { createHeaders } = require('../utils/utils');
 
-module.exports.usersAccessPoint = process.env.USERS_AP || 'http://localhost:7001';
+module.exports.usersAccessPoint = process.env.USERS_AP || 'http://localhost:5001';
 module.exports.usersRoute = (route) => this.usersAccessPoint + route
 
 
