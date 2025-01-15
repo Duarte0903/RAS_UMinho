@@ -126,7 +126,7 @@ services:
     ports:
       - "5002:5002"
     environment:
-      - MONGO_URI: mongodb://picturas:picturas@mongodb-subscriptions:27017/ras?authSource=admin
+      MONGO_URI: mongodb://picturas:picturas@mongodb-subscriptions:27017/ras?authSource=admin
     depends_on:
       mongodb-subscriptions:
         condition: service_healthy
@@ -145,9 +145,9 @@ services:
       - SUBSCRIPTIONS_AP=http://localhost:5001  
       - USERS_AP=http://localhost:5002
     depends_on:
-      auth-ms:
-      project-ms:
-      subscriptions-ms:
+      - auth-ms
+      - project-ms
+      - subscriptions-ms
 
 
   bezel-tool-ms:
