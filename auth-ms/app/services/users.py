@@ -15,9 +15,10 @@ class UserService:
         return user.to_dict() if user else None
 
     @staticmethod
-    def create_user(email, password_hash):
+    def create_user(name, email, password_hash):
         """
         Create a new user.
+        :param name: Name of the user
         :param email: Email address of the user
         :param password_hash: Hashed password of the user
         :return: Created user as a dictionary
@@ -25,7 +26,23 @@ class UserService:
         if User.query.filter_by(email=email).first():
             raise ValueError("Email already exists")
 
-        user = User(email=email, password_hash=password_hash)
+        user = User(name=name, email=email, password_hash=password_hash)
+        user.save()
+        return user.to_dict(exclude_password=True)
+
+    @staticmethod
+    def update_user_name(user_id, new_name):
+        """
+        Update the name of a user.
+        :param user_id: UUID of the user
+        :param new_name: New name of the user
+        :return: Updated user as a dictionary or None if not found
+        """
+        user = User.query.filter_by(id=user_id).first()
+        if not user:
+            return None
+        
+        user.name = new_name
         user.save()
         return user.to_dict(exclude_password=True)
 

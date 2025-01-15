@@ -18,12 +18,27 @@
 **Body:**
 ```json
 {
+  "name": "Rui",
   "email": "user@example.com",
   "password": "secure_password"
 }
 ```
 
-### 3. `PUT /users/email`
+### 3. `PUT /users/name`
+**Purpose:** Update the name of the logged-in user.
+
+**Headers:**
+```json
+{
+  "Authorization": "Bearer <valid_jwt_token>"
+}
+
+{
+  "name": "Rui Lopes"
+}
+```
+
+### 4. `PUT /users/email`
 **Purpose:** Update the email address of the logged-in user.
 
 **Headers:**
@@ -37,7 +52,7 @@
 }
 ```
 
-### 4. `PUT /users/password`
+### 5. `PUT /users/password`
 **Purpose:** Update the password of the logged-in user.
 
 **Headers:**
@@ -52,8 +67,8 @@
 
 ```
 
-### 5. `PUT /users/type`
-**Purpose:** Update the user type (e.g., `anonimo`, `gratuito`, `premium`).
+### 6. `PUT /users/type`
+**Purpose:** Update the user type (e.g., `anonimo`, `gratuito`, `premium`). Private endpoint (not accessible through the API).
 
 **Headers:**
 ```json
@@ -67,7 +82,7 @@
 
 ```
 
-### 6. `POST /users/authenticate`
+### 7. `POST /users/authenticate`
 **Purpose:** Authenticate a user and retrieve a JWT token.
 
 **Body:**
@@ -78,7 +93,7 @@
 }
 ```
 
-### 7. `DELETE /users`
+### 8. `DELETE /users`
 **Purpose:** Delete the logged-in user account.
 
 **Headers:**
@@ -88,7 +103,7 @@
 }
 ```
 
-### 8. `GET /days`
+### 9. `GET /days`
 **Purpose:** Retrieve the current user's daily operations record.
 
 **Headers:**
@@ -98,7 +113,7 @@
 }
 ```
 
-### 9. `POST /days`
+### 10. `POST /days`
 **Purpose:** Increment the operations count for the current user.
 
 **Headers:**

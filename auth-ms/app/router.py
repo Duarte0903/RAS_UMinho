@@ -17,6 +17,13 @@ def users():
     else:  # Default to GET for fetching user details
         return UserController.get_user()
 
+@app_router.route('/users/name', methods=['PUT'])
+def update_user_name():
+    """
+    PUT: Update the name of the current user.
+    """
+    return UserController.update_user_name()
+
 @app_router.route('/users/email', methods=['PUT'])
 def update_user_email():
     """

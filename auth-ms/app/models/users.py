@@ -5,6 +5,7 @@ class User(db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))  # Generate UUID by default
+    name = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     type = db.Column(db.String(20), nullable=False, default="gratuito")  # Add `type` field with a default value
@@ -21,6 +22,7 @@ class User(db.Model):
         """Convert the User object to a dictionary. Optionally exclude the password hash."""
         user_dict = {
             "id": self.id,
+            "name": self.name,
             "email": self.email,
             "type": self.type  # Include the `type` field in the dictionary
         }

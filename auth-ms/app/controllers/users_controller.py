@@ -36,8 +36,8 @@ class UserController:
         Create a new user with hashed password.
         """
         data = request.get_json()
-        if not data or "email" not in data or "password" not in data:
-            return {"success": False, "error": "Email and password are required"}, 400
+        if not data or "name" not in data or "email" not in data or "password" not in data:
+            return {"success": False, "error": "Name, email and password are required"}, 400
     
         try:
             # Hash the password
@@ -45,6 +45,7 @@ class UserController:
     
             # Create the user
             user = UserService.create_user(
+                name=data["name"],
                 email=data["email"],
                 password_hash=hashed_password
             )
@@ -59,6 +60,38 @@ class UserController:
                 "error": "Error creating user",
                 "details": error_details
             }, 500
+
+    @staticmethod
+    def update_user_name():
+        """
+        Update a user's name.
+        """
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return {"success": False, "error": "Authorization header is missing or invalid"}, 401
+
+        # Decode the JWT to get the user_id
+        token = auth_header.split(" ")[1]
+        try:
+            payload = decode_jwt(token)
+            user_id = payload.get("sub")  # 'sub' contains the user ID
+        except Exception:
+            return {"success": False, "error": "Invalid or expired token"}, 401
+
+        # Get the new name from the request body
+        data = request.get_json()
+        if not data or "name" not in data:
+            return {"success": False, "error": "New name is required"}, 400
+
+        try:
+            updated_user = UserService.update_user_name(user_id, data["name"])
+            if not updated_user:
+                return {"success": False, "error": "User not found"}, 404
+            return {"success": True, "user": updated_user}, 200
+        except ValueError as e:
+            return {"success": False, "error": str(e)}, 400
+        except Exception:
+            return {"success": False, "error": "Error updating name"}, 500
 
     @staticmethod
     def update_user_email():
