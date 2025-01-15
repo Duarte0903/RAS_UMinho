@@ -10,7 +10,16 @@ const projects = require('../services/projects');
 // ------------ USERS ------------
 
 
-router.post('/users/login', function (req, res, next) {
+router.get('/users', validateJWT, function (req, res, next) {
+    users.get_user_details(req.headers)
+        .then((result) => {
+            res.jsonp(result);
+        }).catch((err) => {
+            res.status(500).jsonp({ msg: err.message });
+        })
+});
+
+router.post('/users/authenticate', function (req, res, next) {
     console.log("body: ", req.body);
     users.login_user(req.body.email, req.body.password)
         .then((result) => {
@@ -20,7 +29,7 @@ router.post('/users/login', function (req, res, next) {
         })
 });
 
-router.post('/users/register', function (req, res, next) {
+router.post('/users', function (req, res, next) {
     console.log("body: ", req.body)
     users.register_user(req.body.name, req.body.email, req.body.password)
         .then((result) => {
@@ -30,9 +39,29 @@ router.post('/users/register', function (req, res, next) {
         })
 });
 
-router.put('/users', validateJWT, function (req, res, next) {
+router.put('/users/name', validateJWT, function (req, res, next) {
     console.log("body: ", req.body)
-    users.update_user(req.headers, req.body.name, req.body.email, req.body.password)
+    users.update_user_name(req.headers, req.body.name)
+        .then((result) => {
+            res.jsonp(result);
+        }).catch((err) => {
+            res.status(500).jsonp({ msg: err.message });
+        })
+});
+
+router.put('/users/email', validateJWT, function (req, res, next) {
+    console.log("body: ", req.body)
+    users.update_user_email(req.headers, req.body.email)
+        .then((result) => {
+            res.jsonp(result);
+        }).catch((err) => {
+            res.status(500).jsonp({ msg: err.message });
+        })
+});
+
+router.put('/users/password', validateJWT, function (req, res, next) {
+    console.log("body: ", req.body)
+    users.update_user(req.headers, req.body.password)
         .then((result) => {
             res.jsonp(result);
         }).catch((err) => {
@@ -50,7 +79,16 @@ router.delete('/users', validateJWT, function (req, res, next) {
 });
 
 router.get('/users/days', validateJWT, function (req, res, next) {
-    users.get_todays_info(req.headers)
+    users.get_days(req.headers)
+        .then((result) => {
+            res.jsonp(result);
+        }).catch((err) => {
+            res.status(500).jsonp({ msg: err.message });
+        })
+});
+
+router.post('/users/days', validateJWT, function (req, res, next) {
+    users.add_days(req.headers)
         .then((result) => {
             res.jsonp(result);
         }).catch((err) => {
