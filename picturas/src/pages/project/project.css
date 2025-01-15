@@ -212,7 +212,6 @@
     max-width: 90%;
     max-height: calc(100% - 80px);
     object-fit: contain;
-    border-radius: 4px;
 }
 
 .download-button,

@@ -9,18 +9,12 @@ const Project = () => {
     const location = useLocation();
     const { projectName: initialProjectName, images: initialImages } = location.state || {};
     const [images, setImages] = useState(initialImages || []);
-
     const [currentImage, setCurrentImage] = useState(0);
-
     const imageUrl = images && images[currentImage] ? URL.createObjectURL(images[currentImage]) : null;
-
     const [showAdvancedTools, setShowAdvancedTools] = useState(false);
     const [showBasicTools, setShowBasicTools] = useState(true);
-
     const [isDownloading, setIsDownloading] = useState(false);
-
     const [showAddImage, setShowAddImage] = useState(false);
-
     const [projectName, setProjectName] = useState(initialProjectName || "Untitled Project");
     const [isEditingName, setIsEditingName] = useState(false);
 
@@ -35,10 +29,14 @@ const Project = () => {
     // ferramentas
     const [dimensions, setDimensions] = useState('');
     const [removeBackground, setRemoveBackground] = useState(false);
-    const [binarize, setBinarize] = useState(false);
+    const [binarize, setBinarize] = useState(0);
     const [rotate, setRotate] = useState(0);
     const [brightness, setBrightness] = useState(0);
     const [contrast, setContrast] = useState(100);
+    const [beselColor, setBeselColor] = useState('#000000');
+    const [beselWidth, setBeselWidth] = useState(0);
+    const [watermark, setWatermark] = useState(false);
+    const [greyScale, setGreyScale] = useState(false);
 
     const [imgWidth, setImgWidth] = useState('auto');
     const [imgHeight, setImgHeight] = useState('auto');
@@ -60,35 +58,18 @@ const Project = () => {
         setImgHeight(height)
     };
 
-    const handleRemoveBackgroundChange = () => {
-        setRemoveBackground(prevState => !prevState);
-    };
-
-    const handleBinarizeChange = () => {
-        setBinarize(prevState => !prevState);
-    };
-
-    const handleRotationChange = (event) => {
-        setRotate(event.target.value);
-    };
-
-    const handleBrightnessChange = (event) => {
-        setBrightness(event.target.value);
-    };
-
-    const handleContrastChange = (event) => {
-        setContrast(event.target.value);
-    }
-
     const handleReset = () => {
         setDimensions('');
         setImgWidth('auto');
         setImgHeight('auto');
         setRemoveBackground(false);
-        setBinarize(false);
+        setBinarize(0);
         setRotate(0);
         setBrightness(0);
         setContrast(100);
+        setBeselColor('#000000');
+        setBeselWidth(0);
+        setWatermark(false);
     };
 
     const handleDownload = async () => {
@@ -224,53 +205,96 @@ const Project = () => {
                                     type="checkbox"
                                     id="removeBackground"
                                     checked={removeBackground}
-                                    onChange={handleRemoveBackgroundChange}
+                                    onChange={(e) => setRemoveBackground(e.target.checked)}
                                 />
                             </li>
 
                             <li>
-                                <label htmlFor="binarize">Binarização</label>
+                                <label htmlFor="binarize">Grey Scale</label>
                                 <input
                                     type="checkbox"
                                     id="binarize"
-                                    checked={binarize}
-                                    onChange={handleBinarizeChange}
+                                    checked={greyScale}
+                                    onChange={(e) => setGreyScale(e.target.checked)}
                                 />
                             </li>
 
                             <li>
-                                <label htmlFor="rotate">Rodar</label>
+                                <label htmlFor="watermark">Marca d'água</label>
+                                <input
+                                    type="checkbox"
+                                    id="watermark"
+                                    checked={watermark}
+                                    onChange={(e) => setWatermark(e.target.checked)}
+                                />
+                            </li>
+
+                            <li>
+                                <label htmlFor="binarize">Binarização: {binarize}</label>
+                                <input
+                                    type="range"
+                                    id="binarize"
+                                    min="0"
+                                    max="255"
+                                    value={binarize}
+                                    onChange={(e) => setBinarize(e.target.value)}
+                                />
+                            </li>
+
+                            <li>
+                                <label htmlFor="rotate">Rodar: {rotate}º</label>
                                 <input
                                     type="range"
                                     id="rotate"
                                     min="0"
                                     max="360"
                                     value={rotate}
-                                    onChange={handleRotationChange}
+                                    onChange={(e) => setRotate(e.target.value)}
                                 />
                             </li>
 
-                            <li>
-                                <label htmlFor="brightness">Brilho</label>
+                            <li className="range-input">
+                                <label htmlFor="brightness">Brilho: {brightness}</label>
                                 <input
                                     type="range"
                                     id="brightness"
                                     min="-100"
                                     max="100"
                                     value={brightness}
-                                    onChange={handleBrightnessChange}
+                                    onChange={(e) => setBrightness(e.target.value)}
                                 />
                             </li>
 
                             <li>
-                                <label htmlFor="contrast">Contraste</label>
+                                <label htmlFor="contrast">Contraste: {contrast}</label>
                                 <input
                                     type="range"
                                     id="contrast"
                                     min="0"
                                     max="200"
                                     value={contrast}
-                                    onChange={handleContrastChange}
+                                    onChange={(e) => setContrast(e.target.value)}
+                                />
+                            </li>
+
+                            <li>
+                                <label htmlFor="beselColor">Cor da borda</label>
+                                <input
+                                    type="color"
+                                    id="beselColor"
+                                    value={beselColor}
+                                    onChange={(e) => setBeselColor(e.target.value)}
+                                />
+                            </li>
+
+                            <li>
+                                <label htmlFor="beselWidth">Largura da borda (px)</label>
+                                <input
+                                    type="text"
+                                    id="beselWidth"
+                                    placeholder="0"
+                                    value={beselWidth}
+                                    onChange={(e) => setBeselWidth(e.target.value)}
                                 />
                             </li>
                         </ul>
