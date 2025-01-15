@@ -39,7 +39,7 @@ services:
       - minio-data:/data   # Persistent storage for MinIO
     command: server /data --console-address ":9001"
 
-  postgres:
+  postgres-project:
     build: ./project-ms/database  # Directory containing your PostgreSQL Dockerfile and init.sql
     container_name: postgres
     restart: always
@@ -50,7 +50,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-project-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U picturas -d projects"]
       interval: 10s
@@ -66,7 +66,38 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-      postgres:
+      postgres-project:
+        condition: service_healthy
+
+
+  postgres-auth:
+    build: ./auth-ms/database  # Directory containing your PostgreSQL Dockerfile and init.sql
+    container_name: postgres-auth
+    restart: always
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: picturas
+      POSTGRES_PASSWORD: picturas
+    ports:
+      - "5433:5432"  # Host port 5433 maps to container port 5432
+    volumes:
+      - postgres-auth-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U picturas -d auth"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-ms:
+    build: ./auth-ms
+    container_name: auth-ms
+    restart: always
+    ports:
+      - "5001:5001"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres-auth:
         condition: service_healthy
 
 
@@ -162,4 +193,5 @@ volumes:
   rabbitmq-data:
   rabbitmq-logs:
   minio-data:
-  postgres-data:
+  postgres-project-data:
+  postgres-auth-data:
