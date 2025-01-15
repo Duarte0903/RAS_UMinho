@@ -1,15 +1,16 @@
 const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid');
+const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 
 const PaymentSchema = new mongoose.Schema({
-    id: {
+    _id: { type: String, required: true, default: uuidv4 },
+    subs_id: {
         type: String,
         required: true,
-        unique: true
-    },
-    subscription_id: {
-        type: String,
-        required: true,
-        unique: true
+        validate: { // como subscription é definido neste ms podemos validar sem problema
+            validator: v => uuidRegex.test(v),
+            message: props => `${props.value} is not a valid UUID!`
+        }
     },
     extra: {
         type: Map, 
@@ -17,5 +18,7 @@ const PaymentSchema = new mongoose.Schema({
         required: false
     }
 }, { collection: 'payments' });
+
+PaymentSchema.index({ subscription_id: 1 });
 
 module.exports = mongoose.model('Payment', PaymentSchema);

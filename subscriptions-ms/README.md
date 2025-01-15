@@ -2,6 +2,17 @@
 
 This document provides an overview of the Subscriptions API routes. These routes are used to manage subscription data.
 
+## General Requirements
+
+### Headers
+All requests must include the following header:
+```
+Authorization: Bearer <JWT_TOKEN>
+```
+
+Replace `<JWT_TOKEN>` with a valid JSON Web Token.
+
+
 ## Base URL
 All subscription routes are prefixed with `/subscriptions`.
 
@@ -241,8 +252,19 @@ Deletes all subscriptions in the system.
 
 This document provides an overview of the Payment API routes. These routes are used to manage payments associated with subscriptions.
 
+## General Requirements
+
+### Headers
+All requests must include the following header:
+```
+Authorization: Bearer <JWT_TOKEN>
+```
+
+Replace `<JWT_TOKEN>` with a valid JSON Web Token.
+
+
 ## Base URL
-All payment routes are prefixed with `/payments`.
+All payment routes are prefixed with `/subscriptions/:subs_id/payments`.
 
 ---
 
@@ -250,14 +272,16 @@ All payment routes are prefixed with `/payments`.
 
 ### 1. **Create a Payment**
 
-**POST** `/payments`
+**POST** `/subscriptions/:subs_id/payments`
 
-Creates a new payment.
+Creates a new payment for a subscription.
+
+#### URL Parameters:
+- `subs_id` (string): The ID of the subscription to be associated with.
 
 #### Request Body:
 ```json
 {
-  "subscription_id": "<subscription UUID>",
   "extra": {
     "key": "value" // Additional Stripe-related information
   }
@@ -300,12 +324,12 @@ Retrieves a specific payment by its unique ID.
 
 ### 4. **Get Payments by Subscription ID**
 
-**GET** `/payments/subscription/:subscription_id`
+**GET** `/subscriptions/:subs_id/payments`
 
 Retrieves all payments for a specific subscription.
 
 #### URL Parameters:
-- `subscription_id` (string): The ID of the subscription.
+- `subs_id` (string): The ID of the subscription.
 
 #### Response:
 - **200 OK**: Returns a list of payments for the subscription.
@@ -315,12 +339,13 @@ Retrieves all payments for a specific subscription.
 
 ### 5. **Update a Payment by ID**
 
-**PUT** `/payments/:id`
+**PUT** `/subscriptions/:subs_id/payments/:payment_id`
 
 Updates a specific payment by its unique ID.
 
 #### URL Parameters:
-- `id` (string): The ID of the payment.
+- `subs_id` (string): The ID of the subscription associated to the payment.
+- `payment_id` (string): The ID of the payment.
 
 #### Request Body:
 - Any field(s) to update, e.g.,
@@ -341,12 +366,13 @@ Updates a specific payment by its unique ID.
 
 ### 6. **Delete a Payment by ID**
 
-**DELETE** `/payments/:id`
+**DELETE** `/subscriptions/:subs_id/payments/:id`
 
 Deletes a specific payment by its unique ID.
 
 #### URL Parameters:
-- `id` (string): The ID of the payment.
+- `subs_id` (string): The ID of the subscription associated to the payment.
+- `payment_id` (string): The ID of the payment.
 
 #### Response:
 - **200 OK**: Payment deleted successfully.

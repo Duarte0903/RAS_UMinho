@@ -1,10 +1,10 @@
-var createError = require('http-errors');
-var express = require('express');
-var session = require('express-session');
-var logger = require('morgan');
+const createError = require('http-errors');
+const express = require('express');
+const session = require('express-session');
+const logger = require('morgan');
 
-var mongoose = require('mongoose');
-var mongoDB = 'mongodb://localhost:27017/ras';
+const mongoose = require('mongoose');
+const mongoDB = 'mongodb://localhost:27017/ras';
 mongoose.connect(mongoDB, {
     serverSelectionTimeoutMS: 5000
 });
@@ -14,10 +14,11 @@ db.once('open', function() {
     console.log("Connected to MongoDB on port 27017");
 });
 
-var subscriptionsRouter = require('./routes/subscription');
-var paymentsRouter = require('./routes/payment');   
+//const subscriptionsRouter = require('./routes/subscription');
+//const paymentsRouter = require('./routes/payment');   
+const subsRouter = require('./routes/subs');
 
-var app = express();
+const app = express();
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -32,8 +33,9 @@ app.use(session({
 }));
 
 // Define routes
-app.use('/subscriptions', subscriptionsRouter); 
-app.use('/payments', paymentsRouter);
+//app.use('/subscriptions', subscriptionsRouter); 
+//app.use('/payments', paymentsRouter);
+app.use('/subscriptions', subsRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
