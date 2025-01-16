@@ -102,22 +102,14 @@ services:
 
 
   mongodb-subscriptions:
-    image: mongo:6.0  # Usa a imagem oficial do MongoDB (verifica a versão que queres usar)
+    image: mongo:latest
     container_name: mongodb-subscriptions
     restart: always
-    environment:
-      MONGO_INITDB_DATABASE: subscriptions  # Nome da base de dados inicial
-      MONGO_INITDB_ROOT_USERNAME: picturas
-      MONGO_INITDB_ROOT_PASSWORD: picturas
     ports:
-      - "27018:27017"  # Mapeia a porta do host (27018) para a porta padrão do MongoDB (27017)
+      - "27017:27017"
     volumes:
-      - mongodb-subscriptions-data:/data/db  # Volume para persistir os dados
-    healthcheck:
-      test: ["CMD-SHELL", "mongosh --eval 'db.adminCommand(\"ping\")' -u picturas -p picturas --authenticationDatabase admin"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - mongodb-subscriptions-data:/data/db
+
 
   subscriptions-ms:
     build: ./subscriptions-ms
@@ -126,10 +118,9 @@ services:
     ports:
       - "5002:5002"
     environment:
-      MONGO_URI: mongodb://picturas:picturas@mongodb-subscriptions:27017/ras?authSource=admin
+      MONGO_URI: mongodb://mongodb-subscriptions:27017/ras
     depends_on:
-      mongodb-subscriptions:
-        condition: service_healthy
+      - mongodb-subscriptions
 
 
   api-gateway:
@@ -142,8 +133,8 @@ services:
       - SERVER_PORT=5003
       - SECRET_KEY=picturas  # change / remove in production
       - PROJECTS_AP=http://localhost:5000  
-      - SUBSCRIPTIONS_AP=http://localhost:5001  
-      - USERS_AP=http://localhost:5002
+      - USERS_AP=http://localhost:5001
+      - SUBSCRIPTIONS_AP=http://localhost:5002  
     depends_on:
       - auth-ms
       - project-ms
