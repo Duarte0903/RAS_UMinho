@@ -14,7 +14,7 @@ module.exports.createSubscription = async (user_id, data) => {
     }
     
     // Prevent duplicate subscriptions
-    const existingSubscription = await Subscription.findOne({ user_id });
+    const existingSubscription = await Subscription.findOne({ user_id: user_id });
     if (existingSubscription) {
         throw new Error("A subscription for this user already exists");
     }

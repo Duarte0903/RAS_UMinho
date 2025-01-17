@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const subsController = require('../controllers/subs');
-
+const { extract_user } = require('../utils/utils');
 
 // Get all subscriptions
-router.get('/', async (req, res) => {
+router.get('/', extract_user, async (req, res) => {
     try {
         const subscriptions = await subsController.getSubscription(req.user.sub);
         res.status(200).json(subscriptions);
@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
 });
 
 // Create a new subscription
-router.post('/', async (req, res) => {
+router.post('/', extract_user, async (req, res) => {
     try {
         const subscription = await subsController.createSubscription(req.user.sub, req.body);
         res.status(201).json({ message: 'Subscription created successfully', subscription });
@@ -24,7 +24,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update a subscription by ID
-router.put('/:subs_id', async (req, res) => {
+router.put('/:subs_id', extract_user, async (req, res) => {
     try {
         const updatedSubscription = await subsController.updateSubscription(
             req.params.subs_id, 
@@ -41,7 +41,7 @@ router.put('/:subs_id', async (req, res) => {
 });
 
 // Delete a subscription by ID
-router.delete('/:subs_id', async (req, res) => {
+router.delete('/:subs_id', extract_user, async (req, res) => {
     try {
         const deletedSubscription = await subsController.deleteSubscription(req.params.subs_id, req.user.sub);
         if (!deletedSubscription) {
@@ -58,7 +58,7 @@ router.delete('/:subs_id', async (req, res) => {
 
 
 // Get all payments
-router.get('/:subs_id/payments', async (req, res) => {
+router.get('/:subs_id/payments', extract_user, async (req, res) => {
     try {
         const payments = await subsController.getPayments(req.params.subs_id, req.user.sub);
         res.status(200).json(payments);
@@ -68,7 +68,7 @@ router.get('/:subs_id/payments', async (req, res) => {
 });
 
 // Create a new payment
-router.post('/:subs_id/payments', async (req, res) => {
+router.post('/:subs_id/payments', extract_user, async (req, res) => {
     try {
         const payment = await subsController.createPayment(req.user.sub, req.params.subs_id, req.body);
         res.status(201).json({ message: 'Payment created successfully', payment: payment });
@@ -78,7 +78,7 @@ router.post('/:subs_id/payments', async (req, res) => {
 });
 
 // Update a payment by ID
-router.put('/:subs_id/payments/:pay_id', async (req, res) => {
+router.put('/:subs_id/payments/:pay_id', extract_user, async (req, res) => {
     try {
         const updatedPayment = await subsController.updatePayment(
             req.params.subs_id,
@@ -96,7 +96,7 @@ router.put('/:subs_id/payments/:pay_id', async (req, res) => {
 });
 
 // Delete a payment by ID
-router.delete('/:subs_id/payments/:pay_id', async (req, res) => {
+router.delete('/:subs_id/payments/:pay_id', extract_user, async (req, res) => {
     try {
         const deletedPayment = await subsController.deletePayment(req.params.subs_id, req.params.pay_id, req.user.sub);
         if (!deletedPayment) {

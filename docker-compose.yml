@@ -24,7 +24,7 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-  
+
   minio:
     image: minio/minio
     container_name: minio
@@ -110,7 +110,6 @@ services:
     volumes:
       - mongodb-subscriptions-data:/data/db
 
-
   subscriptions-ms:
     build: ./subscriptions-ms
     container_name: subscriptions-ms
@@ -132,9 +131,9 @@ services:
     environment:
       - SERVER_PORT=5003
       - SECRET_KEY=picturas  # change / remove in production
-      - PROJECTS_AP=http://localhost:5000  
-      - USERS_AP=http://localhost:5001
-      - SUBSCRIPTIONS_AP=http://localhost:5002  
+      - PROJECTS_AP=http://project-ms:5000
+      - USERS_AP=http://auth-ms:5001
+      - SUBSCRIPTIONS_AP=http://subscriptions-ms:5002
     depends_on:
       - auth-ms
       - project-ms
@@ -218,7 +217,7 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-  
+
   grayscale-tool-ms:
     build: ./picturas-grayscale-tool-ms
     container_name: grayscale-tool-ms
