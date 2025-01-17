@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './register.css';
 import { Link } from 'react-router-dom';
-import { useSessionStore } from '../../stores/session_store';
+import axios from 'axios'; // Import axios for API requests
 
 const Register = () => {
     const [email, setEmail] = useState('');
@@ -9,14 +9,35 @@ const Register = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
-    const handleRegister = (event) => {
+    const handleRegister = async (event) => {
         event.preventDefault(); // Prevent page reload
         if (password === confirmPassword) {
-            // register user in the db
+            try {
+                const response = await axios.post('https://p.primecog.com/api/users', {
+                    email,
+                    name,
+                    password,
+                });
+                alert('User registered successfully!');
+                console.log(response.data);
+            } catch (error) {
+                if (error.response && error.response.status === 500) {
+                    // Check if the server returned additional error details
+                    if (error.response.data && error.response.data.message) {
+                        alert(`Failed to register user: ${error.response.data.message}`);
+                    } else {
+                        alert('Failed to register user: User already exists.');
+                    }
+                } else {
+                    console.error('Error registering user:', error);
+                    alert('An unexpected error occurred. Please try again.');
+                }
+            }
         } else {
             alert("Passwords do not match!");
         }
     };
+    
 
     return (
         <div className="register-container">

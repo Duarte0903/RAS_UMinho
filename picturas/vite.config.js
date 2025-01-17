@@ -5,6 +5,11 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 80,
+    host: '0.0.0.0', // Bind to all interfaces
+    port: 5005,      // Use port 5005 for the dev server
+    hmr: {
+      host: 'p.primecog.com', // Public hostname for WebSocket HMR
+      protocol: 'wss',        // Use secure WebSocket protocol
+    },
   },
 });
