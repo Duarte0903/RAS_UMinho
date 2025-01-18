@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import './register.css';
-import { Link } from 'react-router-dom';
-import axios from 'axios'; // Import axios for API requests
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Register = () => {
     const [email, setEmail] = useState('');
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const navigate = useNavigate();
 
     const handleRegister = async (event) => {
         event.preventDefault(); // Prevent page reload
@@ -20,6 +21,7 @@ const Register = () => {
                 });
                 alert('User registered successfully!');
                 console.log(response.data);
+                navigate("/")
             } catch (error) {
                 if (error.response && error.response.status === 500) {
                     // Check if the server returned additional error details

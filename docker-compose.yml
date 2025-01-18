@@ -18,7 +18,7 @@ services:
   queue-setup:
     build: ./queue/
     container_name: queue-setup
-    restart: always
+    restart: "no"
     environment:
       - RABBITMQ_HOST=rabbitmq
     depends_on:

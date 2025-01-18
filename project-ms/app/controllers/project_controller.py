@@ -8,6 +8,11 @@ from app.services.tools import ToolService
 from app.utils.minio_utils import *
 from app.utils.rabbitmq_utils import submit_task
 import pika
+import logging
+from app.services.images import ImageService  # Ensure this is at the top
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)  # Set the desired log level
 class ProjectController:
 
     @staticmethod
@@ -129,64 +134,106 @@ class ProjectController:
     def process_project(project_id):
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
+            logger.error("Authorization header is missing or invalid")
             return {"success": False, "error": "Authorization header is missing or invalid"}, 401
 
         token = auth_header.split(" ")[1]
         try:
             payload = decode_jwt(token)
             user_id = payload.get("sub")
+            logger.info(f"Decoded JWT for user_id: {user_id}")
         except Exception as e:
+            logger.error("Error decoding token: %s", str(e))
             return {"success": False, "error": str(e)}, 401
 
-        project = ProjectService.get_project_by_id_and_user(project_id, user_id)
-        if not project:
-            return {"success": False, "error": "Project not found or not owned by user"}, 404
-
-        tools = ToolService.get_tools_by_project(project_id)
-        if not tools:
-            return {"success": False, "error": "No tools defined for this project"}, 400
-
-        tools = sorted(tools, key=lambda t: t["position"])  # Process tools in order
-        src_bucket = f"{project_id}-src"
-        out_bucket = f"{project_id}-out"
-
         try:
-            images = list_objects_in_bucket(src_bucket)  # List all images in the src bucket
+            project = ProjectService.get_project_by_id_and_user(project_id, user_id)
+            if not project:
+                logger.warning(f"Project {project_id} not found or not owned by user {user_id}")
+                return {"success": False, "error": "Project not found or not owned by user"}, 404
+
+            logger.info(f"Processing project {project_id} for user {user_id}")
+            tools = ToolService.get_tools_by_project(project_id)
+            if not tools:
+                logger.warning(f"No tools defined for project {project_id}")
+                return {"success": False, "error": "No tools defined for this project"}, 400
+
+            tools = sorted(tools, key=lambda t: t["position"])
+            logger.info(f"Tools sorted by position: {tools}")
+            src_bucket = f"{project_id}-src"
+            out_bucket = f"{project_id}-out"
+            logger.info(f"Source bucket: {src_bucket}, Output bucket: {out_bucket}")
+
+            # List images in the source bucket
+            try:
+                images = list_objects_in_bucket(src_bucket)
+                logger.info(f"Found {len(images)} images in source bucket: {images}")
+            except Exception as e:
+                logger.error(f"Failed to list images in bucket {src_bucket}: {str(e)}")
+                return {"success": False, "error": f"Error accessing source bucket: {str(e)}"}, 500
+
             for image in images:
-                input_image = image  # Start with the original image
-                intermediate_images = []  # Keep track of intermediate images for deletion
+                logger.info(f"Starting processing for image: {image}")
+                input_image = image
+                intermediate_images = []
 
                 for idx, tool in enumerate(tools):
-                    # Generate the output path for the current tool
+                    logger.info(f"Processing with tool: {tool['procedure']} at position {idx + 1}")
                     output_file_name = f"{uuid.uuid4()}.jpg"
                     output_image = f"{out_bucket}/{output_file_name}"
-
-                    # Submit task to the microservice
                     task_id = str(uuid.uuid4())
-                    submit_task(tool, input_image, output_image, project_id, task_id)
-
-                    # Wait for response from the response queue
+                
+                    logger.info(f"Generated output filename: {output_file_name}")
+                    logger.info(f"Submitting task {task_id} for input: {input_image} to output: {output_image}")
+                
+                    try:
+                        submit_task(tool, input_image, output_image, project_id, task_id)
+                    except Exception as e:
+                        logger.error(f"Error submitting task {task_id}: {str(e)}")
+                        return {"success": False, "error": f"Error submitting task: {str(e)}"}, 500
+                
+                    logger.info(f"Waiting for task completion for task_id: {task_id}")
                     if not ProjectController.wait_for_task_completion(task_id):
-                        raise Exception(f"Task {task_id} failed or timed out.")
-
-                    # Track intermediate image for deletion
-                    if idx > 0:  # Skip the first input image
+                        logger.error(f"Task {task_id} failed or timed out for image {input_image}")
+                        return {"success": False, "error": f"Task {task_id} failed or timed out."}, 500
+                
+                    # Log and debug intermediate outputs
+                    logger.debug(f"Intermediate output: {output_image}")
+                    if idx > 0:
                         intermediate_images.append(input_image)
+                
+                    input_image = output_image  # Update input for next tool
 
-                    # Set the output image as the input for the next tool
-                    input_image = output_image
 
-                # Clean up intermediate images
+                # Create a database entry for the processed image
+                output_image_id = str(uuid.uuid4())
+                logger.info(f"Creating database entry for processed image: {output_image_id}")
+                try:
+                    ImageService.create_image(
+                        image_id=output_image_id,
+                        project_id=project_id,
+                        uri=output_image,
+                    )
+                except Exception as e:
+                    logger.error(f"Error saving processed image {output_image_id} to database: {str(e)}")
+                    return {"success": False, "error": f"Error saving processed image: {str(e)}"}, 500
+
+                logger.info(f"Cleaning up intermediate images for {image}")
                 for img in intermediate_images:
                     try:
                         bucket_name, object_name = img.split("/", 1)
+                        logger.debug(f"Deleting intermediate image: {img}")
                         delete_object(bucket_name, object_name)
                     except Exception as e:
-                        print(f"Error deleting intermediate image {img}: {e}")
+                        logger.error(f"Error deleting intermediate image {img}: {e}")
 
-            return {"success": True, "message": "Project processing triggered successfully"}, 200
+            logger.info(f"Processing completed successfully for project {project_id}")
+            return {"success": True, "message": "Project processing completed successfully"}, 200
+
         except Exception as e:
+            logger.error(f"Failed to process project {project_id}: {str(e)}")
             return {"success": False, "error": f"Failed to process project: {str(e)}"}, 500
+
 
     @staticmethod
     def wait_for_task_completion(task_id, timeout=30):
@@ -223,3 +270,29 @@ class ProjectController:
 
         connection.close()
         return task_status["success"]
+
+
+    @staticmethod
+    def get_project_by_id(project_id):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return {"success": False, "error": "Authorization header is missing or invalid"}, 401
+    
+        token = auth_header.split(" ")[1]
+        try:
+            payload = decode_jwt(token)
+            user_id = payload.get("sub")  # Extract user ID from token
+        except Exception as e:
+            return {"success": False, "error": str(e)}, 401
+    
+        try:
+            # Verify if the project belongs to the user
+            project = ProjectService.get_project_by_id_and_user(project_id, user_id)
+            if not project:
+                return {"success": False, "error": "Project not found or not owned by user"}, 404
+    
+            # Serialize the project object
+            project_dict = project.to_dict()  # Assuming `to_dict` is implemented on the Project model
+            return {"success": True, "project": project_dict}, 200
+        except Exception as e:
+            return {"success": False, "error": str(e)}, 500

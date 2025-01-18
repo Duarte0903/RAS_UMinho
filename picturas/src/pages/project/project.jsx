@@ -4,19 +4,59 @@ import { useLocation } from "react-router-dom";
 import Navbar from "../../components/navbar/navbar";
 import JSZip from 'jszip';
 import ProjectAddImage from "../../components/project_add_image/project_add_image";
+import { useSessionStore } from "../../stores/session_store";
+import axios from 'axios';
 
 const Project = () => {
+    const getProjectId = () => {
+        const path = window.location.hash;
+        const parts = path.split('/'); 
+        return parts[parts.length - 1]; 
+    };
+
+    const proj_id = getProjectId();
+    const { token } = useSessionStore();
     const location = useLocation();
-    const { projectName: initialProjectName, images: initialImages } = location.state || {};
-    const [images, setImages] = useState(initialImages || []);
+    let { projectName: initialProjectName, images: initialImages } = location.state || {};
+    let [images, setImages] = useState(initialImages || []);
+    let [processedImages, setProcessedImages] = useState([]);
     const [currentImage, setCurrentImage] = useState(0);
-    const imageUrl = images && images[currentImage] ? URL.createObjectURL(images[currentImage]) : null;
+    const [currentProcessedImage, setCurrentProcessedImage] = useState([]);
+    const imageUrl = images && images[currentImage] ? images[currentImage] : null;
+    const processedImageUrl = processedImages && processedImages[currentProcessedImage] ? processedImages[currentProcessedImage] : null;
     const [showAdvancedTools, setShowAdvancedTools] = useState(false);
     const [showBasicTools, setShowBasicTools] = useState(true);
     const [isDownloading, setIsDownloading] = useState(false);
     const [showAddImage, setShowAddImage] = useState(false);
-    const [projectName, setProjectName] = useState(initialProjectName || "Untitled Project");
+    let [projectName, setProjectName] = useState(initialProjectName || "Untitled Project");
     const [isEditingName, setIsEditingName] = useState(false);
+
+    useEffect(() => {
+        const fetchProject = async () => {
+            try {
+                const nameResponse = await axios.get(
+                    `https://p.primecog.com/api/users/projects/${proj_id}`, 
+                    {
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
+                setProjectName(nameResponse.data.project.name);
+
+                const imagesResponse = await axios.get(
+                    `https://p.primecog.com/api/users/projects/${proj_id}/images`, 
+                    {
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
+                setImages(imagesResponse.data.original_images);
+                setProcessedImages(imagesResponse.data.processed_images);
+            } catch (error) {
+                console.error('Error fetching project:', error);
+            }
+        };
+    
+        fetchProject();
+    }, [token]);
 
     const handleNameEdit = () => {
         setIsEditingName(true);
@@ -27,6 +67,7 @@ const Project = () => {
     };
 
     // ferramentas
+    const [toolHistory, setToolHistory] = useState([]);
     const [dimensions, setDimensions] = useState('');
     const [removeBackground, setRemoveBackground] = useState(false);
     const [binarize, setBinarize] = useState(0);
@@ -59,6 +100,7 @@ const Project = () => {
     };
 
     const handleReset = () => {
+        setToolHistory([]);
         setDimensions('');
         setImgWidth('auto');
         setImgHeight('auto');
@@ -130,6 +172,22 @@ const Project = () => {
         setCurrentImage(0);
     }
 
+    const logToolChange = (tool, value) => {
+        setToolHistory((prevHistory) => [
+            ...prevHistory,
+            { tool, value, timestamp: new Date().toISOString() },
+        ]);
+    };
+
+    const handleInputRelease = (tool, value) => {
+        logToolChange(tool, value);
+        console.log(toolHistory);
+    };
+
+    const applyTools = () => {
+        
+    };
+
     return (
         <div>
             <Navbar />
@@ -195,6 +253,7 @@ const Project = () => {
                                     id="dimensions"
                                     value={dimensions}
                                     onChange={handleDimensionChange}
+                                    onBlur={() => handleInputRelease('resize', {height: imgHeight, width: imgWidth})}
                                     placeholder="e.g. 300x300"
                                 />
                             </li>
@@ -206,16 +265,18 @@ const Project = () => {
                                     id="removeBackground"
                                     checked={removeBackground}
                                     onChange={(e) => setRemoveBackground(e.target.checked)}
+                                    onBlur={() => handleInputRelease('removebg', {})}
                                 />
                             </li>
 
                             <li>
-                                <label htmlFor="binarize">Grey Scale</label>
+                                <label htmlFor="grayscale">Gray Scale</label>
                                 <input
                                     type="checkbox"
-                                    id="binarize"
+                                    id="grayscale"
                                     checked={greyScale}
                                     onChange={(e) => setGreyScale(e.target.checked)}
+                                    onBlur={() => handleInputRelease('grayscale', {})}
                                 />
                             </li>
 
@@ -226,6 +287,7 @@ const Project = () => {
                                     id="watermark"
                                     checked={watermark}
                                     onChange={(e) => setWatermark(e.target.checked)}
+                                    onBlur={() => handleInputRelease('watermark', {})}
                                 />
                             </li>
 
@@ -238,6 +300,7 @@ const Project = () => {
                                     max="255"
                                     value={binarize}
                                     onChange={(e) => setBinarize(e.target.value)}
+                                    onBlur={() => handleInputRelease('binary', {})}
                                 />
                             </li>
 
@@ -250,6 +313,7 @@ const Project = () => {
                                     max="360"
                                     value={rotate}
                                     onChange={(e) => setRotate(e.target.value)}
+                                    onBlur={() => handleInputRelease('rotation', {angle: rotate})}
                                 />
                             </li>
 
@@ -262,6 +326,7 @@ const Project = () => {
                                     max="100"
                                     value={brightness}
                                     onChange={(e) => setBrightness(e.target.value)}
+                                    onBlur={() => handleInputRelease('brightness', {brightness: brightness, contrast: contrast})}
                                 />
                             </li>
 
@@ -274,6 +339,7 @@ const Project = () => {
                                     max="200"
                                     value={contrast}
                                     onChange={(e) => setContrast(e.target.value)}
+                                    onBlur={() => handleInputRelease('brightness', {brightness: brightness, contrast: contrast})}
                                 />
                             </li>
 
@@ -284,6 +350,7 @@ const Project = () => {
                                     id="beselColor"
                                     value={beselColor}
                                     onChange={(e) => setBeselColor(e.target.value)}
+                                    onBlur={() => handleInputRelease('bezel', {bezelColor: beselColor, bezelThickness: beselWidth})}
                                 />
                             </li>
 
@@ -295,6 +362,7 @@ const Project = () => {
                                     placeholder="0"
                                     value={beselWidth}
                                     onChange={(e) => setBeselWidth(e.target.value)}
+                                    onBlur={() => handleInputRelease('bezel', {bezelColor: beselColor, bezelThickness: beselWidth})}
                                 />
                             </li>
                         </ul>
@@ -308,7 +376,7 @@ const Project = () => {
                     )}
 
                     <div className="buttons-container">
-                        <button className="apply-button">Aplicar</button>
+                        <button className="apply-button" onClick={applyTools}>Aplicar</button>
                         <button className="save-button">Guardar</button>
                         <button className="reset-button" onClick={handleReset}>
                             Reset
@@ -357,7 +425,7 @@ const Project = () => {
                             </div>
             
                             <img
-                                src={imageUrl}
+                                src={imageUrl.url}
                                 alt="project"
                                 className="current-image"
                                 style={{

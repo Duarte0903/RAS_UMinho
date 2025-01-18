@@ -8,17 +8,19 @@ import Project from './pages/project/project';
 import Profile from './pages/profile/profile';
 import Plan from './pages/plan/plan';
 import Register from './pages/register/register';
+import { useSessionStore } from './stores/session_store';
+
+import { useEffect } from 'react';
 
 function App() {
-  AOS.init({
-    once: true,
-    disable: function () {
-      var maxWidth = 800;
-      return window.innerWidth < maxWidth;
-    },
-    duration: 300,
-    easing: 'ease-out-cubic',
-  });
+  useEffect(() => {
+    AOS.init({
+      once: true,
+      disable: () => window.innerWidth < 800,
+      duration: 300,
+      easing: 'ease-out-cubic',
+    });
+  }, []); // Empty dependency array ensures it runs only once.
 
   return (
     <>
@@ -31,7 +33,6 @@ function App() {
         <Route path="/plan" element={<Plan />} />
       </Routes>
     </>
-  )
+  );
 }
-
 export default App

@@ -8,9 +8,10 @@ export const useSessionStore = create(
       user_name: '',
       user_email: '',
       user_tier: '',
+      token: null,
 
-      login: (user_email, user_name, user_tier, user_id) => {
-        set({ user_email, user_name, user_tier, user_id });
+      login: (user_email, user_name, user_tier, user_id, token) => {
+        set({ user_email, user_name, user_tier, user_id, token });
       },
 
       changePlan: (user_tier) => {
@@ -23,6 +24,7 @@ export const useSessionStore = create(
           user_name: '',
           user_email: '',
           user_tier: '',
+          token: null,
         });
       },
     }),

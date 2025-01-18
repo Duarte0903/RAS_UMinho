@@ -36,16 +36,18 @@ def create_project_buckets(project_id):
         raise Exception(f"Failed to create buckets: {str(e)}")
 
 
-def upload_file_to_bucket(bucket_name, file):
+def upload_file_to_bucket(bucket_name, file, object_name):
     """
-    Upload a file to a MinIO bucket.
+    Upload a file to a MinIO bucket with a specified unique name.
 
     :param bucket_name: The name of the bucket.
     :param file: The file object (from Flask request).
+    :param object_name: The unique name to assign to the file in the bucket. Defaults to the file's original name.
     :raises Exception: If upload fails.
     """
     try:
-        file_name = file.filename
+        # Use the provided unique name or fall back to the original filename
+        file_name = object_name if object_name else file.filename
         content_type = file.content_type
         file.seek(0, os.SEEK_END)  # Move the pointer to the end of the file
         file_size = file.tell()  # Get the size of the file
@@ -61,6 +63,7 @@ def upload_file_to_bucket(bucket_name, file):
         )
     except S3Error as e:
         raise Exception(f"Failed to upload file: {str(e)}")
+
 
 
 def list_objects_in_bucket(bucket_name):
@@ -96,26 +99,23 @@ def delete_file_from_bucket(bucket_name, file_name):
 
 def get_output_image_links(bucket_name):
     """
-    List all objects in the specified MinIO bucket and generate pre-signed URLs.
+    List all objects in the specified MinIO bucket and generate URLs that point to the backend image-serving route.
 
     :param bucket_name: The name of the bucket.
-    :return: A list of pre-signed URLs for the objects in the bucket.
+    :return: A list of URLs pointing to the backend image-serving route for the objects in the bucket.
     :raises Exception: If bucket listing fails.
     """
     try:
         objects = minio_client.list_objects(bucket_name, recursive=True)
         urls = []
         for obj in objects:
-            # Generate a pre-signed URL for each object
-            url = minio_client.presigned_get_object(
-                bucket_name,
-                obj.object_name,
-                expires=timedelta(hours=2)  # Expires in 2 hour
-            )
+            # Construct the backend URL for each image
+            url = f"https://p.primecog.com/api/images/{bucket_name}/{obj.object_name}"
             urls.append(url)
         return urls
     except S3Error as e:
         raise Exception(f"Failed to list objects in bucket: {str(e)}")
+
     
 def delete_object(bucket_name, object_name):
     """

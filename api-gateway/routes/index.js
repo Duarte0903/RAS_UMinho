@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { validateJWT } = require('../authentication/authentication');
-
+const multer = require('multer');
+const upload = multer(); // For in-memory storage; configure storage as needed
+const logger = require('./logger'); // Import the logger
 const users = require('../services/users');
 const subscriptions = require('../services/subscriptions');
 const projects = require('../services/projects');
+const FormData = require('form-data'); // Required for creating FormData in Node.js
 
 // Helper function to handle errors
 function handleError(res, err) {
@@ -126,6 +129,12 @@ router.get('/api/users/projects', validateJWT, function (req, res) {
         .catch(err => handleError(res, err));
 });
 
+router.get('/api/users/projects/:proj_id', validateJWT, function (req, res) {
+    projects.get_project(req.headers, req.params.proj_id) 
+        .then(result => res.jsonp(result))
+        .catch(err => handleError(res, err));
+});
+
 router.post('/api/users/projects', validateJWT, function (req, res) {
     projects.create_project(req.headers, req.body.name)
         .then(result => res.jsonp(result))
@@ -144,11 +153,48 @@ router.delete('/api/users/projects/:proj_id', validateJWT, function (req, res) {
         .catch(err => handleError(res, err));
 });
 
-router.post('/api/users/projects/:proj_id/images', validateJWT, function (req, res) {
-    projects.upload_image(req.headers, req.params.proj_id, req.body.file)
-        .then(result => res.jsonp(result))
-        .catch(err => handleError(res, err));
-});
+router.post(
+    '/api/users/projects/:proj_id/images',
+    validateJWT,
+    upload.single('file'), // Ensure the frontend uses 'file' as the FormData key
+    function (req, res) {
+        if (!req.file) {
+            logger.error('No file provided in the request', {
+                route: '/api/users/projects/:proj_id/images',
+                headers: req.headers,
+                params: req.params,
+            });
+            return res.status(400).json({ error: "No file provided" });
+        }
+
+        logger.info('Received file', {
+            fileName: req.file.originalname        });
+
+        // Prepare FormData to send to the backend
+        const formData = new FormData();
+        formData.append('file', req.file.buffer, {
+            filename: req.file.originalname,
+            contentType: req.file.mimetype,
+        });
+
+        // Forward the file to the backend
+        projects.upload_image(req.headers, req.params.proj_id, formData)
+            .then(result => {
+                logger.info('File uploaded successfully', {
+                    projectId: req.params.proj_id,
+                    result,
+                });
+                res.jsonp(result);
+            })
+            .catch(err => {
+                logger.error('Error uploading file', {
+                    error: err.message,
+                    stack: err.stack,
+                });
+                handleError(res, err);
+            });
+    }
+);
 
 router.get('/api/users/projects/:proj_id/images', validateJWT, function (req, res) {
     projects.get_images(req.headers, req.params.proj_id)
@@ -197,5 +243,23 @@ router.get('/api/users/projects/:proj_id/status', validateJWT, function (req, re
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });
+
+router.get('/api/images/:bucket/:filename', function (req, res) {
+    projects.serve_image(req.params.bucket, req.params.filename)
+        .then(response => {
+            // Pipe the response directly to the client
+            response.data.pipe(res);
+        })
+        .catch(err => {
+            logger.error('Error retrieving image', {
+                bucket,
+                filename,
+                error: err.message,
+                stack: err.stack,
+            });
+            handleError(res, err);
+        });
+});
+
 
 module.exports = router;

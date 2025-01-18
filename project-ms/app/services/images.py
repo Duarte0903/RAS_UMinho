@@ -38,3 +38,46 @@ class ImageService:
 
         db.session.delete(image)
         db.session.commit() 
+
+    @staticmethod
+    def get_images_by_project(project_id):
+        """
+        Retrieve all processed image links from the output bucket for a project.
+        :param project_id: The ID of the project.
+        :return: A list of pre-signed URLs for the project's processed images.
+        """
+        out_bucket = f"{project_id}-out"
+        try:
+            image_links = get_output_image_links(out_bucket)
+            return image_links
+        except Exception as e:
+            raise Exception(f"Failed to retrieve images for project '{project_id}': {str(e)}")
+
+
+    @staticmethod
+    def get_images_by_project_and_bucket(project_id, bucket_name):
+        """
+        Retrieve all images associated with a project and bucket from the database.
+        :param project_id: The UUID of the project.
+        :param bucket_name: The name of the bucket (source or output).
+        :return: A list of image records as dictionaries.
+        """
+        try:
+            images = (
+                Image.query.filter(
+                    Image.project_id == project_id,
+                    Image.uri.like(f"{bucket_name}/%")  # Match URIs starting with the bucket name
+                ).all()
+            )
+            return [
+                {
+                    "image_id": str(img.id),  # Ensure UUID is serialized as a string
+                    "uri": img.uri,
+                    "project_id": str(img.project_id)  # Include project_id for context
+                }
+                for img in images
+            ]
+        except Exception as e:
+            raise Exception(f"Failed to retrieve images for bucket '{bucket_name}': {str(e)}")
+    
+    

@@ -24,6 +24,14 @@ def update_project(project_id):
     """
     return ProjectController.update_project(project_id)
 
+@app_router.route('/projects/<project_id>', methods=['GET'])
+def get_project_by_id(project_id):
+    """
+    GET: Retrieve details of a specific project by its ID.
+    """
+    return ProjectController.get_project_by_id(project_id)
+
+
 @app_router.route('/projects/<project_id>', methods=['DELETE'])
 def delete_project(project_id):
     """
@@ -96,3 +104,12 @@ def get_project_status(project_id):
     GET: Retrieve the processing status of a specific project.
     """
     return ProjectController.get_project_status(project_id)
+
+
+# Route to serve images from MinIO through the backend
+@app_router.route('/images/<bucket>/<path:filename>', methods=['GET'])
+def serve_image(bucket, filename):
+    """
+    GET: Serve an image from the specified bucket through the backend.
+    """
+    return ImageController.serve_image(bucket, filename)

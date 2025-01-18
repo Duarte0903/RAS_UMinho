@@ -53,6 +53,11 @@ class BezelTool(Tool):
             input_obj = self.s3_client.get_object(Bucket=input_bucket, Key=input_key)
             input_image = Image.open(BytesIO(input_obj['Body'].read()))
 
+            # Ensure the image is in RGB mode before applying the bezel
+            if input_image.mode != "RGB":
+                LOGGER.info("Converting image to RGB mode for bezel application.")
+                input_image = input_image.convert("RGB")
+                
             # Add bezel using ImageOps.expand
             LOGGER.info("Applying bezel to the image.")
             image_with_bezel = ImageOps.expand(
