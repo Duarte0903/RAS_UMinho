@@ -1,8 +1,7 @@
 const jwt = require('jsonwebtoken');
 const SECRET_KEY = process.env.SECRET_KEY || "picturas";
 
-// Middleware para validar o JWT
-module.exports.validateJWT = (req, res, next) => {
+const validateJWT = (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
@@ -20,4 +19,26 @@ module.exports.validateJWT = (req, res, next) => {
         req.user = decoded;
         next();
     });
+}
+
+const restriction = (req, res, next) => {
+    var user = req.user 
+    var type = user["type"]
+    var limits = {
+        "anônimo": 5,
+        "gratuito": 10,
+        "premium": float("inf")  
+    }
+    var max_operations = limits[type] ?? 5
+
+    if (user["num_processes"] >= max_operations){
+        return res.status(401).json({ error: "You have no more operations :c" });
+    } 
+    next();
+}
+
+// Middleware para validar o JWT
+module.exports = {
+    validateJWT : validateJWT,
+    restriction : restriction
 }

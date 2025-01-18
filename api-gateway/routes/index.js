@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { validateJWT } = require('../authentication/authentication');
+const { validateJWT, restriction } = require('../authentication/authentication');
 const multer = require('multer');
 const upload = multer(); // For in-memory storage; configure storage as needed
 const logger = require('./logger'); // Import the logger
@@ -266,7 +266,7 @@ router.delete('/api/users/projects/:proj_id/tools/:tool_id', validateJWT, functi
         .catch(err => handleError(res, err));
 });
 
-router.post('/api/users/projects/:proj_id/process', validateJWT, function (req, res) {
+router.post('/api/users/projects/:proj_id/process', validateJWT, restriction, function (req, res) {
     projects.trigger_process(req.headers, req.params.proj_id)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
