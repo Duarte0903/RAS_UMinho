@@ -124,10 +124,10 @@ class UserService:
         """
         Update the type of a user.
         :param user_id: UUID of the user
-        :param new_type: New type for the user (e.g., 'anônimo', 'gratuito', 'premium')
+        :param new_type: New type for the user (e.g., 'gratuito', 'premium')
         :return: Updated user as a dictionary or None if not found
         """
-        valid_types = ["anonimo", "gratuito", "premium"]
+        valid_types = ["gratuito", "premium"]
         if new_type not in valid_types:
             raise ValueError(f"Invalid user type: {new_type}. Valid types are: {valid_types}")
 

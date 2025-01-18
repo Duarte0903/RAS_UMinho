@@ -184,7 +184,7 @@ class UserController:
     @staticmethod
     def update_user_type():
         """
-        Update the type of a user.
+        Update the type of a user and return a new JWT token.
         """
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
@@ -207,7 +207,11 @@ class UserController:
             updated_user = UserService.update_user_type(user_id, data["type"])
             if not updated_user:
                 return {"success": False, "error": "User not found"}, 404
-            return {"success": True, "user": updated_user}, 200
+            updated_user["id"] = str(updated_user["id"])
+
+            # Generate a JWT token
+            token = generate_jwt(user_id=updated_user["id"], user_type=updated_user["type"])
+            return {"success": True, "user": updated_user, "token": token}, 200
         except ValueError as e:
             return {"success": False, "error": str(e)}, 400
         except Exception:
