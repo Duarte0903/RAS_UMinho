@@ -104,6 +104,23 @@ module.exports.update_user_password = (reqHeaders, password) => {
     });
 }
 
+module.exports.update_user_type = (reqHeaders, type) => {
+    return axios.put(
+        this.usersRoute('/users/type'),
+        { "type": type },
+        createHeaders(reqHeaders)
+    ).then((result) => {
+        let resp = result.data
+        if (resp != null) {
+            return resp
+        } else {
+            throw new Error('Error: Invalid user')
+        }
+    }).catch((err) => {
+        throw err
+    });
+}
+
 module.exports.delete_user = (reqHeaders) => {
     return axios.delete(
         this.usersRoute('/users'),

@@ -50,10 +50,44 @@ router.put('/api/users/password', validateJWT, function (req, res) {
         .catch(err => handleError(res, err));
 });
 
+/* Body:
+    - 'type' ('gratuito' ou 'premium') - tipo de plano do user
+    - 'subs_type' ('monthly' ou 'annual') - tipo de subscricao escolhida
+*/
+router.put('/api/users/type', validateJWT, function (req, res) {
+    let old_user_type = req.user.type;
+    let new_user_type = req.body.type;
+    if (old_user_type === new_user_type)
+        return res.status(200).jsonp('O user ja tinha o plano desejado.');
+
+    users.update_user_type(req.headers, new_user_type)
+        .then(updated_user => {
+            subscriptions.get_subscription(req.headers)
+                .then(subs => {
+                    if (new_user_type === 'premium') {
+                        // Reativar subscrição existente
+                        subscriptions.update_subscription(req.headers, subs._id, subs.type, 'active');
+                    } else {
+                        // Tornar a subscrição inativa
+                        subscriptions.update_subscription(req.headers, subs._id, subs.type, 'inactive');
+                    }
+                }).catch(err => {
+                    // Criar nova subscrição
+                    subscriptions.create_subscription(req.headers, req.body.subs_type, 'active');
+                });
+            res.jsonp(updated_user)
+        }).catch(err => handleError(res, err));
+});
+
 router.delete('/api/users', validateJWT, function (req, res) {
-    users.delete_user(req.headers)
-        .then(result => res.jsonp(result))
-        .catch(err => handleError(res, err));
+    let subs_promise = subscriptions.get_subscription(req.headers);
+    let deleted_user_promise = users.delete_user(req.headers)
+
+    Promise.all([subs_promise, deleted_user_promise])
+        .then(([subs, deleted_user]) => {
+            res.jsonp(deleted_user)
+            if(subs._id) subscriptions.delete_subscription(req.headers, subs._id)
+        }).catch(err => handleError(res, err));
 });
 
 router.get('/api/users/days', validateJWT, function (req, res) {

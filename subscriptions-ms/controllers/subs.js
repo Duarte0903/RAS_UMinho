@@ -3,8 +3,19 @@ const Payment = require('../models/payment');
 
 // Get a subscription by user ID
 module.exports.getSubscription = async (user_id) => {
-    return await Subscription.findOne({ user_id }).exec();
-}
+    // Verificar se o user_id foi fornecido
+    if (!user_id) {
+        throw new Error("Missing required field: user_id");
+    }
+    
+    try {
+        // Procurar a assinatura no banco de dados
+        return await Subscription.findOne({ user_id }).exec();
+    } catch (error) {
+        throw new Error(`Error fetching subscription: ${error.message}`);
+    }
+};
+
 
 // Create a new subscription
 module.exports.createSubscription = async (user_id, data) => {

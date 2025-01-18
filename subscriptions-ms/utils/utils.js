@@ -16,7 +16,6 @@ module.exports.extract_user = (req, res, next) => {
         }
 
         // Token é válido; adiciona os dados descodificados ao objeto de requisição
-        console.log("user: ", decoded)
         req.user = decoded;
         next();
     });
