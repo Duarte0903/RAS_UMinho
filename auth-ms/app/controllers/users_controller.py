@@ -1,7 +1,9 @@
 from flask import request, jsonify
 from app.services.users import UserService
+from app.services.days import DayService
 from app.utils.jwt_utils import decode_jwt, generate_jwt
 from app.utils.hashing_utils import hash_password, verify_password  # Utility for password hashing and verification
+import random, string, uuid
 
 
 class UserController:
@@ -174,17 +176,55 @@ class UserController:
                 return {"success": False, "error": "Invalid email or password"}, 401
             user["id"] = str(user["id"])
 
+            # Get operations count
+            operations_count = 0
+            day_record = DayService.get_day_record(user["id"])
+            if day_record:
+                operations_count = day_record["operations_count"]
+                
             # Generate a JWT token
-            token = generate_jwt(user_id=user["id"], user_type=user["type"])
+            token = generate_jwt(user_id=user["id"], user_type=user["type"], num_processes=operations_count)
             return {"success": True, "user": user, "token": token}, 200
         except Exception:
             return {"success": False, "error": "Authentication failed"}, 500
+    
+    @staticmethod
+    def authenticate_user_anonimo():
+        """
+        Authenticate an anonimous user and return a JWT token for his session.
+        """
+        try:
+            # Mock the data
+            mock_name = "Anonimo"
+    
+            # Generate a highly unique random email
+            random_string = ''.join(random.choices(string.ascii_lowercase + string.digits, k=12))
+            unique_id = uuid.uuid4().hex[:8]  # Get a unique 8-character string from a UUID
+            mock_email = f"{random_string}.{unique_id}@example.com"
+    
+            mock_hashed_password = hash_password("password")
+    
+            # Create the user
+            user = UserService.create_user_anonimo(
+                name=mock_name,
+                email=mock_email,
+                password_hash=mock_hashed_password
+            )
+            if not user:
+                return {"success": False, "error": "Error creating anonimous user"}, 401
+            user["id"] = str(user["id"])
+    
+            # Generate a JWT token
+            token = generate_jwt(user_id=user["id"], user_type=user["type"], num_processes=0)
+            return {"success": True, "user": user, "token": token}, 200
+        except Exception:
+            return {"success": False, "error": "Authentication of anonimous user failed"}, 500
 
 
     @staticmethod
     def update_user_type():
         """
-        Update the type of a user.
+        Update the type of a user and return a new JWT token.
         """
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
@@ -207,7 +247,17 @@ class UserController:
             updated_user = UserService.update_user_type(user_id, data["type"])
             if not updated_user:
                 return {"success": False, "error": "User not found"}, 404
-            return {"success": True, "user": updated_user}, 200
+            updated_user["id"] = str(updated_user["id"])
+            
+            # Get operations count
+            operations_count = 0
+            day_record = DayService.get_day_record(user_id)
+            if day_record:
+                operations_count = day_record["operations_count"]
+                
+            # Generate a JWT token
+            token = generate_jwt(user_id=updated_user["id"], user_type=updated_user["type"], num_processes=operations_count)
+            return {"success": True, "user": updated_user, "token": token}, 200
         except ValueError as e:
             return {"success": False, "error": str(e)}, 400
         except Exception:

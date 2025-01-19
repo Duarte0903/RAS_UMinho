@@ -29,6 +29,12 @@ router.post('/api/users/authenticate', function (req, res) {
         .catch(err => handleError(res, err));
 });
 
+router.post('/api/users/authenticate/anonimo', function (req, res) {
+    users.login_anonimo()
+        .then(result => res.jsonp(result))
+        .catch(err => handleError(res, err));
+});
+
 router.post('/api/users', function (req, res) {
     users.register_user(req.body.name, req.body.email, req.body.password)
         .then(result => res.jsonp(result))
@@ -272,8 +278,14 @@ router.delete('/api/users/projects/:proj_id/tools/:tool_id', validateJWT, functi
 });
 
 router.post('/api/users/projects/:proj_id/process', validateJWT, restriction, function (req, res) {
-    projects.trigger_process(req.headers, req.params.proj_id)
-        .then(result => res.jsonp(result))
+    let proj_promise = projects.trigger_process(req.headers, req.params.proj_id);
+    let days_promise = users.add_days(req.headers);
+
+    Promise.all([proj_promise, days_promise])
+        .then(([proj, days]) => {
+            proj["token"] = days["token"];
+            res.jsonp(proj)
+        })
         .catch(err => handleError(res, err));
 });
 
