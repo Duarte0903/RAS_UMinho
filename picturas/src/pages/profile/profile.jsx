@@ -94,8 +94,8 @@ const Profile = () => {
                 
                 <div className="profile-info">
                     {[
-                        { label: "Nome", value: user_name },
-                        { label: "Email", value: user_email },
+                        { label: "Nome", value: newName },
+                        { label: "Email", value: newEmail },
                         { label: "Tier", value: user_tier },
                     ].map((item, index) => (
                         <div className="profile-info-item" key={index}>

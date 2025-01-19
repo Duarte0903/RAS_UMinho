@@ -243,15 +243,14 @@ const Project = () => {
                 // Múltiplas imagens para download em um arquivo ZIP
                 const zip = new JSZip();
 
-                processedImages.forEach((image, index) => {
+                const fetchPromises = processedImages.map((image, index) => {
                     const fileName = image.filename || `${projectName || 'image'}_${index + 1}.png`;
-                    
-                    fetch(image.url)
-                        .then(response => response.blob())
-                        .then(blob => {
-                            zip.file(fileName, blob);
-                        });
+                    return fetch(image.url)
+                        .then((response) => response.blob())
+                        .then((blob) => zip.file(fileName, blob));
                 });
+    
+                await Promise.all(fetchPromises);
 
                 const zipBlob = await zip.generateAsync({ type: 'blob' });
                 const zipUrl = URL.createObjectURL(zipBlob);
@@ -292,7 +291,6 @@ const Project = () => {
             window.location.reload();
         } catch (error) {
             console.error('Error applying tools:', error);
-            alert('Error applying tools');
         }
     };
 
