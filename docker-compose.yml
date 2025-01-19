@@ -228,6 +228,16 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+  ocr-tool-ms:
+    build: ./picturas-ocr-tool-ms
+    container_name: ocr-tool-ms
+    restart: always
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
 volumes:
   rabbitmq-data:
