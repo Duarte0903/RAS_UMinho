@@ -10,6 +10,8 @@ from app.utils.rabbitmq_utils import submit_task
 import pika
 import logging
 from app.services.images import ImageService  # Ensure this is at the top
+from threading import Thread
+from flask import current_app
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)  # Set the desired log level
@@ -197,94 +199,72 @@ class ProjectController:
             logger.error("Error decoding token: %s", str(e))
             return {"success": False, "error": str(e)}, 401
 
-        try:
-            project = ProjectService.get_project_by_id_and_user(project_id, user_id)
-            if not project:
-                logger.warning(f"Project {project_id} not found or not owned by user {user_id}")
-                return {"success": False, "error": "Project not found or not owned by user"}, 404
-
-            logger.info(f"Processing project {project_id} for user {user_id}")
-            tools = ToolService.get_tools_by_project(project_id)
-            if not tools:
-                logger.warning(f"No tools defined for project {project_id}")
-                return {"success": False, "error": "No tools defined for this project"}, 400
-
-            tools = sorted(tools, key=lambda t: t["position"])
-            logger.info(f"Tools sorted by position: {tools}")
-            src_bucket = f"{project_id}-src"
-            out_bucket = f"{project_id}-out"
-            logger.info(f"Source bucket: {src_bucket}, Output bucket: {out_bucket}")
-
-            # List images in the source bucket
-            try:
-                images = list_objects_in_bucket(src_bucket)
-                logger.info(f"Found {len(images)} images in source bucket: {images}")
-            except Exception as e:
-                logger.error(f"Failed to list images in bucket {src_bucket}: {str(e)}")
-                return {"success": False, "error": f"Error accessing source bucket: {str(e)}"}, 500
-
-            for image in images:
-                logger.info(f"Starting processing for image: {image}")
-                input_image = image
-                intermediate_images = []
-
-                for idx, tool in enumerate(tools):
-                    logger.info(f"Processing with tool: {tool['procedure']} at position {idx + 1}")
-                    output_file_name = f"{uuid.uuid4()}.jpg"
-                    output_image = f"{out_bucket}/{output_file_name}"
-                    task_id = str(uuid.uuid4())
-                
-                    logger.info(f"Generated output filename: {output_file_name}")
-                    logger.info(f"Submitting task {task_id} for input: {input_image} to output: {output_image}")
-                
-                    try:
-                        submit_task(tool, input_image, output_image, project_id, task_id)
-                    except Exception as e:
-                        logger.error(f"Error submitting task {task_id}: {str(e)}")
-                        return {"success": False, "error": f"Error submitting task: {str(e)}"}, 500
-                
-                    logger.info(f"Waiting for task completion for task_id: {task_id}")
-                    if not ProjectController.wait_for_task_completion(task_id):
-                        logger.error(f"Task {task_id} failed or timed out for image {input_image}")
-                        return {"success": False, "error": f"Task {task_id} failed or timed out."}, 500
-                
-                    # Log and debug intermediate outputs
-                    logger.debug(f"Intermediate output: {output_image}")
-                    if idx > 0:
-                        intermediate_images.append(input_image)
-                
-                    input_image = output_image  # Update input for next tool
-
-
-                # Create a database entry for the processed image
-                output_image_id = str(uuid.uuid4())
-                logger.info(f"Creating database entry for processed image: {output_image_id}")
+        def background_task(app_context):
+            # Use the Flask application context in the thread
+            with app_context:
                 try:
-                    ImageService.create_image(
-                        image_id=output_image_id,
-                        project_id=project_id,
-                        uri=output_image,
-                    )
+                    logger.info(f"Processing project {project_id} for user {user_id}")
+                    project = ProjectService.get_project_by_id_and_user(project_id, user_id)
+                    if not project:
+                        logger.warning(f"Project {project_id} not found or not owned by user {user_id}")
+                        return
+
+                    tools = ToolService.get_tools_by_project(project_id)
+                    if not tools:
+                        logger.warning(f"No tools defined for project {project_id}")
+                        return
+
+                    tools = sorted(tools, key=lambda t: t["position"])
+                    src_bucket = f"{project_id}-src"
+                    out_bucket = f"{project_id}-out"
+
+                    images = list_objects_in_bucket(src_bucket)
+
+                    for image in images:
+                        input_image = image
+                        intermediate_images = []
+
+                        for idx, tool in enumerate(tools):
+                            output_file_name = f"{uuid.uuid4()}.jpg"
+                            output_image = f"{out_bucket}/{output_file_name}"
+                            task_id = str(uuid.uuid4())
+
+                            submit_task(tool, input_image, output_image, project_id, task_id)
+
+                            if not ProjectController.wait_for_task_completion(task_id):
+                                logger.error(f"Task {task_id} failed or timed out for image {input_image}")
+                                return
+
+                            if idx > 0:
+                                intermediate_images.append(input_image)
+
+                            input_image = output_image
+
+                        output_image_id = str(uuid.uuid4())
+                        ImageService.create_image(
+                            image_id=output_image_id,
+                            project_id=project_id,
+                            uri=output_image,
+                        )
+
+                        for img in intermediate_images:
+                            bucket_name, object_name = img.split("/", 1)
+                            delete_object(bucket_name, object_name)
+
+                    logger.info(f"Processing completed successfully for project {project_id}")
                 except Exception as e:
-                    logger.error(f"Error saving processed image {output_image_id} to database: {str(e)}")
-                    return {"success": False, "error": f"Error saving processed image: {str(e)}"}, 500
+                    logger.error(f"Failed to process project {project_id}: {str(e)}")
 
-                logger.info(f"Cleaning up intermediate images for {image}")
-                for img in intermediate_images:
-                    try:
-                        bucket_name, object_name = img.split("/", 1)
-                        logger.debug(f"Deleting intermediate image: {img}")
-                        delete_object(bucket_name, object_name)
-                    except Exception as e:
-                        logger.error(f"Error deleting intermediate image {img}: {e}")
+        # Pass the current app context to the thread
+        app_context = current_app._get_current_object().app_context()
+        thread = Thread(target=background_task, args=(app_context,))
+        thread.start()
 
-            logger.info(f"Processing completed successfully for project {project_id}")
-            return {"success": True, "message": "Project processing completed successfully"}, 200
-
-        except Exception as e:
-            logger.error(f"Failed to process project {project_id}: {str(e)}")
-            return {"success": False, "error": f"Failed to process project: {str(e)}"}, 500
-
+        # Return immediately
+        return {
+            "success": True,
+            "message": "Project processing started successfully",
+        }, 202
 
     @staticmethod
     def wait_for_task_completion(task_id, timeout=30):
