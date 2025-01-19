@@ -35,7 +35,7 @@ class ProjectController:
         # Call the service to fetch projects
         try:
             projects = ProjectService.get_projects_by_user(user_id)
-            return {"success": True, "projects": projects}
+            return {"success": True, "projects": projects}, 200
         except Exception as e:
             return {"success": False, "error": "Error accessing data!"}, 500
 

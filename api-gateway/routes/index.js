@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { validateJWT, restriction, stopanonimo } = require('../authentication/authentication');
+const { validateJWT, restriction, stopanonimo, stopRegistred } = require('../authentication/authentication');
 const multer = require('multer');
 const upload = multer(); // For in-memory storage; configure storage as needed
 const logger = require('./logger'); // Import the logger
@@ -76,7 +76,7 @@ router.put('/api/users/type', validateJWT, stopanonimo, function (req, res) {
         }).catch(err => handleError(res, err));
 });
 
-router.delete('/api/users', validateJWT, function (req, res) {
+router.delete('/api/users', validateJWT, stopanonimo, function (req, res) {
     let subs_promise = subscriptions.get_subscription(req.headers);
     let projects_promise = projects.get_projects(req.headers);
     let deleted_user_promise = users.delete_user(req.headers)
@@ -84,19 +84,20 @@ router.delete('/api/users', validateJWT, function (req, res) {
     Promise.all([subs_promise, projects_promise, deleted_user_promise])
         .then(([subs, projects, deleted_user]) => {
             res.jsonp(deleted_user)
+            console.log(projects);
             if(subs._id) subscriptions.delete_subscription(req.headers, subs._id);
-            if(projects) projects.delete_projects_user(req.headers);
+            if(projs.projects && projs.projects.length > 0) projects.delete_projects_user(req.headers);
         }).catch(err => handleError(res, err));
 });
 
-router.delete('/api/users/anonimo', validateJWT, function (req, res) {
+router.delete('/api/users/anonimo', validateJWT, stopRegistred, function (req, res) {
     let projects_promise = projects.get_projects(req.headers);
     let deleted_user_promise = users.delete_user(req.headers);
 
     Promise.all([projects_promise, deleted_user_promise])
-        .then(([projects, deleted_user]) => {
+        .then(([projs, deleted_user]) => {
             res.jsonp(deleted_user)
-            if(projects) projects.delete_projects_user(req.headers);
+            if(projs.projects && projs.projects.length > 0) projects.delete_projects_user(req.headers);
         })
         .catch(err => handleError(res, err));
 });
