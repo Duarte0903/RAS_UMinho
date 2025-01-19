@@ -64,9 +64,9 @@ class UserController:
             }, 500
 
     @staticmethod
-    def update_user_name():
+    def update_user():
         """
-        Update a user's name.
+        Update a user's details (except 'type').
         """
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
@@ -80,13 +80,16 @@ class UserController:
         except Exception:
             return {"success": False, "error": "Invalid or expired token"}, 401
 
-        # Get the new name from the request body
+        # Get the new details from the request body
         data = request.get_json()
-        if not data or "name" not in data:
-            return {"success": False, "error": "New name is required"}, 400
+        if not data or "name" not in data or "email" not in data or "password" not in data:
+            return {"success": False, "error": "New name, email and password are required"}, 400
 
         try:
-            updated_user = UserService.update_user_name(user_id, data["name"])
+            # Hash the new password
+            hashed_password = hash_password(data["password"])
+
+            updated_user = UserService.update_user(user_id, data["name"], data["email"], hashed_password)
             if not updated_user:
                 return {"success": False, "error": "User not found"}, 404
             return {"success": True, "user": updated_user}, 200
@@ -94,71 +97,6 @@ class UserController:
             return {"success": False, "error": str(e)}, 400
         except Exception:
             return {"success": False, "error": "Error updating name"}, 500
-
-    @staticmethod
-    def update_user_email():
-        """
-        Update a user's email.
-        """
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return {"success": False, "error": "Authorization header is missing or invalid"}, 401
-
-        # Decode the JWT to get the user_id
-        token = auth_header.split(" ")[1]
-        try:
-            payload = decode_jwt(token)
-            user_id = payload.get("sub")  # 'sub' contains the user ID
-        except Exception:
-            return {"success": False, "error": "Invalid or expired token"}, 401
-
-        # Get the new email from the request body
-        data = request.get_json()
-        if not data or "email" not in data:
-            return {"success": False, "error": "New email is required"}, 400
-
-        try:
-            updated_user = UserService.update_user_email(user_id, data["email"])
-            if not updated_user:
-                return {"success": False, "error": "User not found"}, 404
-            return {"success": True, "user": updated_user}, 200
-        except ValueError as e:
-            return {"success": False, "error": str(e)}, 400
-        except Exception:
-            return {"success": False, "error": "Error updating email"}, 500
-
-    @staticmethod
-    def update_user_password():
-        """
-        Update a user's password.
-        """
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return {"success": False, "error": "Authorization header is missing or invalid"}, 401
-
-        # Decode the JWT to get the user_id
-        token = auth_header.split(" ")[1]
-        try:
-            payload = decode_jwt(token)
-            user_id = payload.get("sub")  # 'sub' contains the user ID
-        except Exception:
-            return {"success": False, "error": "Invalid or expired token"}, 401
-
-        # Get the new password from the request body
-        data = request.get_json()
-        if not data or "password" not in data:
-            return {"success": False, "error": "New password is required"}, 400
-
-        try:
-            # Hash the new password
-            hashed_password = hash_password(data["password"])
-
-            updated_user = UserService.update_user_password(user_id, hashed_password)
-            if not updated_user:
-                return {"success": False, "error": "User not found"}, 404
-            return {"success": True, "user": updated_user}, 200
-        except Exception:
-            return {"success": False, "error": "Error updating password"}, 500
 
     @staticmethod
     def authenticate_user():

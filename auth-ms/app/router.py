@@ -6,37 +6,22 @@ from app.controllers.days_controller import DayController
 app_router = Blueprint('app_router', __name__)
 
 # Routes for user management
-@app_router.route('/users', methods=['GET', 'POST'])
+@app_router.route('/users', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def users():
     """
     GET: Retrieve details of the current user.
     POST: Create a new user.
+    PUT: Update the details of the current user (except 'type').
+    DELETE: Delete the current user's account.
     """
-    if request.method == 'POST':
-        return UserController.create_user()
-    else:  # Default to GET for fetching user details
+    if request.method == 'GET':
         return UserController.get_user()
-
-@app_router.route('/users/name', methods=['PUT'])
-def update_user_name():
-    """
-    PUT: Update the name of the current user.
-    """
-    return UserController.update_user_name()
-
-@app_router.route('/users/email', methods=['PUT'])
-def update_user_email():
-    """
-    PUT: Update the email address of the current user.
-    """
-    return UserController.update_user_email()
-
-@app_router.route('/users/password', methods=['PUT'])
-def update_user_password():
-    """
-    PUT: Update the password of the current user.
-    """
-    return UserController.update_user_password()
+    elif request.method == 'POST':
+        return UserController.create_user()
+    elif request.method == 'PUT':
+        return UserController.update_user()
+    else:  # Default to DELETE for deleting the user account
+        return UserController.delete_user()
 
 @app_router.route('/users/type', methods=['PUT'])
 def update_user_type():
@@ -58,13 +43,6 @@ def authenticate_user_anonimo():
     POST: Authenticate an anonimous user and retrieve a JWT token for his session.
     """
     return UserController.authenticate_user_anonimo()
-
-@app_router.route('/users', methods=['DELETE'])
-def delete_user():
-    """
-    DELETE: Delete the current user's account.
-    """
-    return UserController.delete_user()
 
 # Routes for daily operations
 @app_router.route('/days', methods=['GET', 'POST'])

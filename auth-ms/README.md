@@ -24,8 +24,8 @@
 }
 ```
 
-### 3. `PUT /users/name`
-**Purpose:** Update the name of the logged-in user.
+### 3. `PUT /users`
+**Purpose:** Update the details of the logged-in user, except its type.
 
 **Headers:**
 ```json
@@ -34,40 +34,13 @@
 }
 
 {
-  "name": "Rui Lopes"
-}
-```
-
-### 4. `PUT /users/email`
-**Purpose:** Update the email address of the logged-in user.
-
-**Headers:**
-```json
-{
-  "Authorization": "Bearer <valid_jwt_token>"
-}
-
-{
-  "email": "new_email@example.com"
-}
-```
-
-### 5. `PUT /users/password`
-**Purpose:** Update the password of the logged-in user.
-
-**Headers:**
-```json
-{
-  "Authorization": "Bearer <valid_jwt_token>"
-}
-
-{
+  "name": "Rui Lopes",
+  "email": "new_email@example.com",
   "password": "new_secure_password"
 }
-
 ```
 
-### 6. `PUT /users/type`
+### 5. `PUT /users/type`
 **Purpose:** Update the user type (e.g., `anonimo`, `gratuito`, `premium`). Private endpoint (not accessible through the API).
 
 **Headers:**
@@ -82,7 +55,7 @@
 
 ```
 
-### 7. `POST /users/authenticate`
+### 6. `POST /users/authenticate`
 **Purpose:** Authenticate a user and retrieve a JWT token.
 
 **Body:**
@@ -92,6 +65,9 @@
   "password": "secure_password"
 }
 ```
+
+### 7. `POST /users/authenticate/anonimo`
+**Purpose:** Creates and authenticates a new anonimous user (temporary) and retrieve a JWT token. No data needed on `headers` or `body`. 
 
 ### 8. `DELETE /users`
 **Purpose:** Delete the logged-in user account.

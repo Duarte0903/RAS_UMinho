@@ -41,20 +41,8 @@ router.post('/api/users', function (req, res) {
         .catch(err => handleError(res, err));
 });
 
-router.put('/api/users/name', validateJWT, function (req, res) {
-    users.update_user_name(req.headers, req.body.name)
-        .then(result => res.jsonp(result))
-        .catch(err => handleError(res, err));
-});
-
-router.put('/api/users/email', validateJWT, function (req, res) {
-    users.update_user_email(req.headers, req.body.email)
-        .then(result => res.jsonp(result))
-        .catch(err => handleError(res, err));
-});
-
-router.put('/api/users/password', validateJWT, function (req, res) {
-    users.update_user(req.headers, req.body.password)
+router.put('/api/users', validateJWT, function (req, res) {
+    users.update_user(req.headers, req.body.name, req.body.email, req.body.password)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });
@@ -91,22 +79,27 @@ router.put('/api/users/type', validateJWT, function (req, res) {
 router.delete('/api/users', validateJWT, function (req, res) {
     let subs_promise = subscriptions.get_subscription(req.headers);
     let deleted_user_promise = users.delete_user(req.headers)
+    let deleted_projects_promise = projects.delete_projects_user(req.headers);
 
-    Promise.all([subs_promise, deleted_user_promise])
-        .then(([subs, deleted_user]) => {
+    Promise.all([subs_promise, deleted_user_promise, deleted_projects_promise])
+        .then(([subs, deleted_user, deleted_projects]) => {
             res.jsonp(deleted_user)
             if(subs._id) subscriptions.delete_subscription(req.headers, subs._id)
         }).catch(err => handleError(res, err));
 });
 
-router.get('/api/users/days', validateJWT, function (req, res) {
-    users.get_days(req.headers)
-        .then(result => res.jsonp(result))
+router.delete('/api/users/anonimo', validateJWT, function (req, res) {
+    // apagar user, days, projects, images and tools
+    let deleted_projects_promise = projects.delete_projects_user(req.headers) // apaga project, e imagens e tools on cascade
+    let deleted_user_promise = users.delete_user(req.headers) // apaga user, e days on cascade
+
+    Promise.all([deleted_projects_promise, deleted_user_promise])
+        .then(([deleted_projects, deleted_user]) => res.jsonp(deleted_user))
         .catch(err => handleError(res, err));
 });
 
-router.post('/api/users/days', validateJWT, function (req, res) {
-    users.add_days(req.headers)
+router.get('/api/users/days', validateJWT, function (req, res) {
+    users.get_todays_record(req.headers)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });
@@ -193,6 +186,8 @@ router.delete('/api/users/projects/:proj_id', validateJWT, function (req, res) {
         .catch(err => handleError(res, err));
 });
 
+// ---------- IMAGES -----------------
+
 router.post(
     '/api/users/projects/:proj_id/images',
     validateJWT,
@@ -253,6 +248,25 @@ router.delete('/api/users/projects/:proj_id/images/:image_id', validateJWT, func
         .catch(err => handleError(res, err));
 });
 
+router.get('/api/images/:bucket/:filename', function (req, res) {
+    projects.serve_image(req.params.bucket, req.params.filename)
+        .then(response => {
+            // Pipe the response directly to the client
+            response.data.pipe(res);
+        })
+        .catch(err => {
+            logger.error('Error retrieving image', {
+                bucket,
+                filename,
+                error: err.message,
+                stack: err.stack,
+            });
+            handleError(res, err);
+        });
+});
+
+// ------------ TOOLS ------------
+
 router.get('/api/users/projects/:proj_id/tools', validateJWT, function (req, res) {
     projects.get_tools(req.headers, req.params.proj_id)
         .then(result => res.jsonp(result))
@@ -277,9 +291,11 @@ router.delete('/api/users/projects/:proj_id/tools/:tool_id', validateJWT, functi
         .catch(err => handleError(res, err));
 });
 
+// ------------ PROCESS -------------
+
 router.post('/api/users/projects/:proj_id/process', validateJWT, restriction, function (req, res) {
     let proj_promise = projects.trigger_process(req.headers, req.params.proj_id);
-    let days_promise = users.add_days(req.headers);
+    let days_promise = users.increment_todays_record(req.headers);
 
     Promise.all([proj_promise, days_promise])
         .then(([proj, days]) => {
@@ -293,23 +309,6 @@ router.get('/api/users/projects/:proj_id/status', validateJWT, function (req, re
     projects.process_status(req.headers, req.params.proj_id)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
-});
-
-router.get('/api/images/:bucket/:filename', function (req, res) {
-    projects.serve_image(req.params.bucket, req.params.filename)
-        .then(response => {
-            // Pipe the response directly to the client
-            response.data.pipe(res);
-        })
-        .catch(err => {
-            logger.error('Error retrieving image', {
-                bucket,
-                filename,
-                error: err.message,
-                stack: err.stack,
-            });
-            handleError(res, err);
-        });
 });
 
 

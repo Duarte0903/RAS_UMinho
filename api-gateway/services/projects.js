@@ -23,6 +23,25 @@ module.exports.get_projects = (reqHeaders) => {
     });
 }
 
+module.exports.get_project = (reqHeaders, proj_id) => {
+    return axios
+        .get(
+            this.projectsRoute(`/projects/${proj_id}`), // Construct the route to the MS
+            createHeaders(reqHeaders) // Pass headers including `Authorization`
+        )
+        .then(result => {
+            let resp = result.data;
+            if (resp != null) {
+                return resp;
+            } else {
+                throw new Error(`Error: Project ${proj_id} not found`);
+            }
+        })
+        .catch(err => {
+            throw err;
+        });
+};
+
 module.exports.create_project = (reqHeaders, name) => {
     return axios.post(
         this.projectsRoute('/projects'),
@@ -67,6 +86,22 @@ module.exports.delete_project = (reqHeaders, proj_id) => {
             return resp
         } else {
             throw new Error('Error: Invalid project -> ', proj_id)
+        }
+    }).catch((err) => {
+        throw err
+    });
+}
+
+module.exports.delete_projects_user = (reqHeaders) => {
+    return axios.delete(
+        this.projectsRoute('/projects'),
+        createHeaders(reqHeaders)
+    ).then((result) => {
+        let resp = result.data
+        if (resp != null) {
+            return resp
+        } else {
+            throw new Error('Error: Invalid user')
         }
     }).catch((err) => {
         throw err
@@ -255,22 +290,3 @@ module.exports.process_status = (reqHeaders, proj_id) => {
         throw err
     });
 }
-
-module.exports.get_project = (reqHeaders, proj_id) => {
-    return axios
-        .get(
-            this.projectsRoute(`/projects/${proj_id}`), // Construct the route to the MS
-            createHeaders(reqHeaders) // Pass headers including `Authorization`
-        )
-        .then(result => {
-            let resp = result.data;
-            if (resp != null) {
-                return resp;
-            } else {
-                throw new Error(`Error: Project ${proj_id} not found`);
-            }
-        })
-        .catch(err => {
-            throw err;
-        });
-};

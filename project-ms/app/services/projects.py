@@ -3,11 +3,23 @@ from app.db import db
 import uuid
 
 class ProjectService:
+    
     @staticmethod
     def get_projects_by_user(user_id):
         # Use SQLAlchemy ORM to query the Projects table
         projects = Project.query.filter_by(user_id=user_id).all()
         return [project.to_dict() for project in projects]
+    
+    @staticmethod
+    def get_project_by_id_and_user(project_id, user_id):
+        """
+        Fetch a project by ID and verify ownership.
+        :param project_id: The ID of the project.
+        :param user_id: The ID of the user.
+        :return: The Project object if found and owned by the user, else None.
+        """
+        return Project.query.filter_by(id=project_id, user_id=user_id).first()
+
     @staticmethod
     def create_project(name, user_id):
         """
@@ -44,7 +56,6 @@ class ProjectService:
         project.save()
         return project.to_dict()
     
-
     @staticmethod
     def delete_project(project_id, user_id):
         """
@@ -59,13 +70,17 @@ class ProjectService:
 
         project.delete()
         return True
-    
+
     @staticmethod
-    def get_project_by_id_and_user(project_id, user_id):
+    def delete_projects_user(user_id):
         """
-        Fetch a project by ID and verify ownership.
-        :param project_id: The ID of the project.
-        :param user_id: The ID of the user.
-        :return: The Project object if found and owned by the user, else None.
+        Delete all projects that belong to the user.
+        :param user_id: UUID of the user
+        :return: True if all the projects were deleted, False otherwise
         """
-        return Project.query.filter_by(id=project_id, user_id=user_id).first()
+        rows_deleted = Project.query.filter_by(user_id=user_id).delete(synchronize_session=False)
+        db.session.commit()  # Confirm the transaction
+        if rows_deleted > 0:
+            return True # Return True if any rows were deleted
+        else: 
+            return False 

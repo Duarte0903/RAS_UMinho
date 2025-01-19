@@ -38,6 +38,31 @@ class ProjectController:
             return {"success": False, "error": "Error accessing data!"}, 500
 
     @staticmethod
+    def get_project_by_id(project_id):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return {"success": False, "error": "Authorization header is missing or invalid"}, 401
+    
+        token = auth_header.split(" ")[1]
+        try:
+            payload = decode_jwt(token)
+            user_id = payload.get("sub")  # Extract user ID from token
+        except Exception as e:
+            return {"success": False, "error": str(e)}, 401
+    
+        try:
+            # Verify if the project belongs to the user
+            project = ProjectService.get_project_by_id_and_user(project_id, user_id)
+            if not project:
+                return {"success": False, "error": "Project not found or not owned by user"}, 404
+    
+            # Serialize the project object
+            project_dict = project.to_dict()  # Assuming `to_dict` is implemented on the Project model
+            return {"success": True, "project": project_dict}, 200
+        except Exception as e:
+            return {"success": False, "error": str(e)}, 500
+
+    @staticmethod
     def add_project():
         # Extract JWT from Authorization header
         auth_header = request.headers.get("Authorization")
@@ -127,6 +152,32 @@ class ProjectController:
                 return {"success": True, "message": "Project deleted successfully"}, 200
             else:
                 return {"success": False, "error": "Project not found or not owned by user"}, 404
+        except Exception as e:
+            return {"success": False, "error": str(e)}, 500
+        
+    @staticmethod
+    def delete_projects_user():
+        # Extract JWT from the Authorization header
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return {"success": False, "error": "Authorization header is missing or invalid"}, 401
+
+        # Decode the JWT to get the user_id
+        token = auth_header.split(" ")[1]
+        try:
+            payload = decode_jwt(token)
+            user_id = payload.get("sub")  # 'sub' contains the user ID
+        except Exception as e:
+            return {"success": False, "error": str(e)}, 401
+
+        # Call the service to delete the user's projects
+        try:
+            deleted = ProjectService.delete_projects_user(user_id=user_id)
+            if deleted:
+                return {"success": True, "message": "Projects deleted successfully"}, 200
+            else:
+                # Return true even if there were no projects to delete
+                return {"success": True, "error": "No projects owned by user found to delete"}, 404
         except Exception as e:
             return {"success": False, "error": str(e)}, 500
         
@@ -270,29 +321,3 @@ class ProjectController:
 
         connection.close()
         return task_status["success"]
-
-
-    @staticmethod
-    def get_project_by_id(project_id):
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return {"success": False, "error": "Authorization header is missing or invalid"}, 401
-    
-        token = auth_header.split(" ")[1]
-        try:
-            payload = decode_jwt(token)
-            user_id = payload.get("sub")  # Extract user ID from token
-        except Exception as e:
-            return {"success": False, "error": str(e)}, 401
-    
-        try:
-            # Verify if the project belongs to the user
-            project = ProjectService.get_project_by_id_and_user(project_id, user_id)
-            if not project:
-                return {"success": False, "error": "Project not found or not owned by user"}, 404
-    
-            # Serialize the project object
-            project_dict = project.to_dict()  # Assuming `to_dict` is implemented on the Project model
-            return {"success": True, "project": project_dict}, 200
-        except Exception as e:
-            return {"success": False, "error": str(e)}, 500

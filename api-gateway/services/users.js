@@ -68,44 +68,10 @@ module.exports.register_user = (name, email, password) => {
     });
 }
 
-module.exports.update_user_name = (reqHeaders, name) => {
+module.exports.update_user = (reqHeaders, name, email, password) => {
     return axios.put(
-        this.usersRoute('/users/name'),
-        { "name": name },
-        createHeaders(reqHeaders)
-    ).then((result) => {
-        let resp = result.data
-        if (resp != null) {
-            return resp
-        } else {
-            throw new Error('Error: Invalid user')
-        }
-    }).catch((err) => {
-        throw err
-    });
-}
-
-module.exports.update_user_email = (reqHeaders, email) => {
-    return axios.put(
-        this.usersRoute('/users/email'),
-        { "email": email },
-        createHeaders(reqHeaders)
-    ).then((result) => {
-        let resp = result.data
-        if (resp != null) {
-            return resp
-        } else {
-            throw new Error('Error: Invalid user')
-        }
-    }).catch((err) => {
-        throw err
-    });
-}
-
-module.exports.update_user_password = (reqHeaders, password) => {
-    return axios.put(
-        this.usersRoute('/users/password'),
-        { "password": password },
+        this.usersRoute('/users'),
+        { "name": name, "email": email, "password": password },
         createHeaders(reqHeaders)
     ).then((result) => {
         let resp = result.data

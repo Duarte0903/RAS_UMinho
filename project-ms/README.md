@@ -24,6 +24,12 @@ Replace `<JWT_TOKEN>` with a valid JSON Web Token.
 - **Headers**: As specified in the General Requirements.
 - **Body**: None.
 
+#### Retrieve a Project
+**GET** `/projects/<project_id>`
+- **Description**: Retrieve the details of a project of the current user. (user id is exctracted from jwt)
+- **Headers**: As specified in the General Requirements.
+- **Body**: None.
+
 #### Create a New Project
 **POST** `/projects`
 - **Description**: Create a new project for the current user.
@@ -49,6 +55,12 @@ Replace `<JWT_TOKEN>` with a valid JSON Web Token.
 #### Delete a Project
 **DELETE** `/projects/<project_id>`
 - **Description**: Delete a specific project (owned by the user).
+- **Headers**: As specified in the General Requirements.
+- **Body**: None.
+
+#### Delete all Projects of a user
+**DELETE** `/projects`
+- **Description**: Delete all projects (owned by the user).
 - **Headers**: As specified in the General Requirements.
 - **Body**: None.
 

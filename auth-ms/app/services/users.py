@@ -47,53 +47,27 @@ class UserService:
         return user.to_dict(exclude_password=True)
 
     @staticmethod
-    def update_user_name(user_id, new_name):
+    def update_user(user_id, new_name, new_email, new_password_hash):
         """
-        Update the name of a user.
+        Update the details of a user.
         :param user_id: UUID of the user
         :param new_name: New name of the user
-        :return: Updated user as a dictionary or None if not found
-        """
-        user = User.query.filter_by(id=user_id).first()
-        if not user:
-            return None
-        
-        user.name = new_name
-        user.save()
-        return user.to_dict(exclude_password=True)
-
-    @staticmethod
-    def update_user_email(user_id, new_email):
-        """
-        Update the email of a user.
-        :param user_id: UUID of the user
         :param new_email: New email address
-        :return: Updated user as a dictionary or None if not found
-        """
-        user = User.query.filter_by(id=user_id).first()
-        if not user:
-            return None
-
-        if User.query.filter_by(email=new_email).first():
-            raise ValueError("Email already exists")
-
-        user.email = new_email
-        user.save()
-        return user.to_dict(exclude_password=True)
-
-    @staticmethod
-    def update_user_password(user_id, new_password_hash):
-        """
-        Update the password of a user.
-        :param user_id: UUID of the user
         :param new_password_hash: New hashed password
         :return: Updated user as a dictionary or None if not found
         """
         user = User.query.filter_by(id=user_id).first()
         if not user:
             return None
-
+        
+        # Check if the new email exists only if it is different from the current email
+        if user.email != new_email and User.query.filter_by(email=new_email).first():
+            raise ValueError("Email already exists")
+        
+        user.name = new_name
+        user.email = new_email
         user.password_hash = new_password_hash
+
         user.save()
         return user.to_dict(exclude_password=True)
 
