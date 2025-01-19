@@ -27,7 +27,7 @@ const restriction = (req, res, next) => {
     var limits = {
         "anonimo": 5,
         "gratuito": 10,
-        "premium": float("inf")  
+        "premium": Infinity 
     }
     var max_operations = limits[type] ?? 5
 

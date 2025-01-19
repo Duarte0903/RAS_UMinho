@@ -179,7 +179,7 @@ class ProjectController:
                 return {"success": True, "message": "Projects deleted successfully"}, 200
             else:
                 # Return true even if there were no projects to delete
-                return {"success": True, "error": "No projects owned by user found to delete"}, 404
+                return {"success": False, "error": "No projects owned by user found to delete"}, 404
         except Exception as e:
             return {"success": False, "error": str(e)}, 500
         

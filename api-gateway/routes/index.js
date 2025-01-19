@@ -78,23 +78,26 @@ router.put('/api/users/type', validateJWT, function (req, res) {
 
 router.delete('/api/users', validateJWT, function (req, res) {
     let subs_promise = subscriptions.get_subscription(req.headers);
+    let projects_promise = projects.get_projects(req.headers);
     let deleted_user_promise = users.delete_user(req.headers)
-    let deleted_projects_promise = projects.delete_projects_user(req.headers);
-
-    Promise.all([subs_promise, deleted_user_promise, deleted_projects_promise])
-        .then(([subs, deleted_user, deleted_projects]) => {
+    
+    Promise.all([subs_promise, projects_promise, deleted_user_promise])
+        .then(([subs, projects, deleted_user]) => {
             res.jsonp(deleted_user)
-            if(subs._id) subscriptions.delete_subscription(req.headers, subs._id)
+            if(subs._id) subscriptions.delete_subscription(req.headers, subs._id);
+            if(projects) projects.delete_projects_user(req.headers);
         }).catch(err => handleError(res, err));
 });
 
 router.delete('/api/users/anonimo', validateJWT, function (req, res) {
-    // apagar user, days, projects, images and tools
-    let deleted_projects_promise = projects.delete_projects_user(req.headers) // apaga project, e imagens e tools on cascade
-    let deleted_user_promise = users.delete_user(req.headers) // apaga user, e days on cascade
+    let projects_promise = projects.get_projects(req.headers);
+    let deleted_user_promise = users.delete_user(req.headers);
 
-    Promise.all([deleted_projects_promise, deleted_user_promise])
-        .then(([deleted_projects, deleted_user]) => res.jsonp(deleted_user))
+    Promise.all([projects_promise, deleted_user_promise])
+        .then(([projects, deleted_user]) => {
+            res.jsonp(deleted_user)
+            if(projects) projects.delete_projects_user(req.headers);
+        })
         .catch(err => handleError(res, err));
 });
 
