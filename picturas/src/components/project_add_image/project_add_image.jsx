@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import JSZip from 'jszip';
 import './project_add_image.css';
+import axios from 'axios';
+import { useSessionStore } from '../../stores/session_store';
 
-const ProjectAddImage = ({ onClose, onImagesUploaded }) => {
+const ProjectAddImage = ({ onClose, onImagesUploaded, proj_id }) => {
     const [images, setImages] = useState([]);
     const [isProcessing, setIsProcessing] = useState(false);
+
+    const { token } = useSessionStore();
 
     const handleZipFile = async (file) => {
         try {
@@ -66,12 +70,40 @@ const ProjectAddImage = ({ onClose, onImagesUploaded }) => {
         handleFiles(files);
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
 
         if (isProcessing) {
             alert('Ainda estamos a processar as imagens, por favor aguarde.');
             return;
+        }
+
+        for (const image of images) {
+            if (!(image instanceof File)) {
+                console.error('Invalid file:', image);
+                continue; // Skip invalid files
+            }
+
+            const formData = new FormData();
+            formData.append('file', image);
+
+            console.log('Uploading image:', image.name);
+            formData.forEach((value, key) => {
+                console.log(`${key}:`, value); // Debug the FormData content
+            });
+
+            await axios.post(
+                `https://p.primecog.com/api/users/projects/${proj_id}/images`,
+                formData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        // Let Axios handle Content-Type
+                    },
+                }
+            );
+
+            console.log(`Imagem enviada com sucesso: ${image.name}`);
         }
 
         onImagesUploaded(images);
