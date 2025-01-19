@@ -21,7 +21,7 @@ const Project = () => {
     let [images, setImages] = useState(initialImages || []);
     let [processedImages, setProcessedImages] = useState([]);
     const [currentImage, setCurrentImage] = useState(0);
-    const [currentProcessedImage, setCurrentProcessedImage] = useState([]);
+    const [currentProcessedImage, setCurrentProcessedImage] = useState(0);
     const imageUrl = images && images[currentImage] ? images[currentImage] : null;
     const processedImageUrl = processedImages && processedImages[currentProcessedImage] ? processedImages[currentProcessedImage] : null;
     const [showAdvancedTools, setShowAdvancedTools] = useState(false);
@@ -30,6 +30,25 @@ const Project = () => {
     const [showAddImage, setShowAddImage] = useState(false);
     let [projectName, setProjectName] = useState(initialProjectName || "Untitled Project");
     const [isEditingName, setIsEditingName] = useState(false);
+    let [toolPosition, setToolPosition] = useState(0);
+    const [isAdjusting, setIsAdjusting] = useState(false);
+
+    // Tool states
+    let [dimensions, setDimensions] = useState('');
+    let [removeBackground, setRemoveBackground] = useState(false);
+    let [binarize, setBinarize] = useState(0);
+    let [rotate, setRotate] = useState(0);
+    let [brightness, setBrightness] = useState(0);
+    let [contrast, setContrast] = useState(100);
+    let [beselColor, setBeselColor] = useState('#000000');
+    let [beselWidth, setBeselWidth] = useState(0);
+    let [watermark, setWatermark] = useState(false);
+    let [greyScale, setGreyScale] = useState(false);
+    let [imgWidth, setImgWidth] = useState('auto');
+    let [imgHeight, setImgHeight] = useState('auto');
+    const [originalWidth, setOriginalWidth] = useState(null);
+    const [originalHeight, setOriginalHeight] = useState(null);
+    let imageRef = useRef(null);
 
     useEffect(() => {
         const fetchProject = async () => {
@@ -50,13 +69,21 @@ const Project = () => {
                 );
                 setImages(imagesResponse.data.original_images);
                 setProcessedImages(imagesResponse.data.processed_images);
+                console.log(imagesResponse.data.processed_images);
             } catch (error) {
                 console.error('Error fetching project:', error);
             }
         };
     
         fetchProject();
-    }, [token]);
+    }, [token, proj_id]);
+
+    useEffect(() => {
+        if (imageRef.current) {
+            setOriginalWidth(imageRef.current.naturalWidth);
+            setOriginalHeight(imageRef.current.naturalHeight);
+        }
+    }, [currentImage]);
 
     const handleNameEdit = () => {
         setIsEditingName(true);
@@ -66,41 +93,104 @@ const Project = () => {
         setImages(prevImages => [...prevImages, ...newImages]);
     };
 
-    // ferramentas
-    const [toolHistory, setToolHistory] = useState([]);
-    const [dimensions, setDimensions] = useState('');
-    const [removeBackground, setRemoveBackground] = useState(false);
-    const [binarize, setBinarize] = useState(0);
-    const [rotate, setRotate] = useState(0);
-    const [brightness, setBrightness] = useState(0);
-    const [contrast, setContrast] = useState(100);
-    const [beselColor, setBeselColor] = useState('#000000');
-    const [beselWidth, setBeselWidth] = useState(0);
-    const [watermark, setWatermark] = useState(false);
-    const [greyScale, setGreyScale] = useState(false);
-
-    const [imgWidth, setImgWidth] = useState('auto');
-    const [imgHeight, setImgHeight] = useState('auto');
-    const [originalWidth, setOriginalWidth] = useState(null);
-    const [originalHeight, setOriginalHeight] = useState(null);
-    const imageRef = useRef(null);
-
-    useEffect(() => {
-        if (imageRef.current) {
-            setOriginalWidth(imageRef.current.naturalWidth);
-            setOriginalHeight(imageRef.current.naturalHeight);
-        }
-    }, [currentImage]);
-
     const handleDimensionChange = (event) => {
         setDimensions(event.target.value);
         const [width, height] = event.target.value.split('x').map((val) => parseInt(val));
         setImgWidth(width);
-        setImgHeight(height)
+        setImgHeight(height);
+    };
+
+    const handleInputRelease = async (tool, value) => {
+        try {
+            const toolRequest = {
+                position: toolPosition,
+                procedure: tool,
+                parameters: value
+            };
+
+            const response = await axios.post(
+                `https://p.primecog.com/api/users/projects/${proj_id}/tools`,
+                toolRequest,
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            if (response.status === 200) {
+                setToolPosition(prev => prev + 1);
+            }
+
+            console.log(`Tool ${tool} applied:`, response.data);
+        } catch (error) {
+            console.error(`Error applying ${tool}:`, error);
+        }
+    };
+
+    // Individual tool handlers
+    const handleResizeRelease = () => {
+        if (imgWidth !== 'auto' || imgHeight !== 'auto') {
+            handleInputRelease('resize', {
+                width: parseInt(imgWidth),
+                height: parseInt(imgHeight)
+            });
+        }
+    };
+
+    const handleRemoveBackgroundRelease = () => {
+        if (removeBackground) {
+            handleInputRelease('removebg', {});
+        }
+    };
+
+    const handleGrayscaleRelease = () => {
+        if (greyScale) {
+            handleInputRelease('grayscale', {});
+        }
+    };
+
+    const handleWatermarkRelease = () => {
+        if (watermark) {
+            handleInputRelease('watermark', {});
+        }
+    };
+
+    const handleBinarizeRelease = () => {
+        if (binarize > 0) {
+            handleInputRelease('binary', {
+                threshold: parseInt(binarize)
+            });
+        }
+    };
+
+    const handleRotateRelease = () => {
+        if (rotate !== 0) {
+            handleInputRelease('rotation', {
+                angle: parseInt(rotate)
+            });
+        }
+    };
+
+    const handleBrightnessContrastRelease = () => {
+        if (isAdjusting) {
+            handleInputRelease('brightness_contrast', {
+                brightness: parseInt(brightness),
+                contrast: parseInt(contrast)
+            });
+            setIsAdjusting(false);
+        }
+    };
+
+    const handleBezelRelease = () => {
+        if (beselWidth > 0) {
+            handleInputRelease('bezel', {
+                color: beselColor,
+                thickness: parseInt(beselWidth)
+            });
+        }
     };
 
     const handleReset = () => {
-        setToolHistory([]);
+        setToolPosition(0);
         setDimensions('');
         setImgWidth('auto');
         setImgHeight('auto');
@@ -112,6 +202,7 @@ const Project = () => {
         setBeselColor('#000000');
         setBeselWidth(0);
         setWatermark(false);
+        setGreyScale(false);
     };
 
     const handleDownload = async () => {
@@ -121,7 +212,7 @@ const Project = () => {
         }
     
         try {
-            // unica imagem 
+            setIsDownloading(true);
             if (images.length === 1) {
                 const imageBlob = images[0];
                 const imageUrl = URL.createObjectURL(imageBlob);
@@ -137,9 +228,7 @@ const Project = () => {
                 document.body.removeChild(link);
                 
                 URL.revokeObjectURL(imageUrl);
-            }
-            // multiplas imagens - download zip
-            else {
+            } else {
                 const zip = new JSZip();
                 
                 images.forEach((imageBlob, index) => {
@@ -163,29 +252,40 @@ const Project = () => {
             }
         } catch (error) {
             console.error('Error downloading images:', error);
-            alert('Error no download');
+            alert('Error during download');
+        } finally {
+            setIsDownloading(false);
         }
     };
 
     const handleCurrentImageDelete = () => {
         setImages(prevImages => prevImages.filter((_, index) => index !== currentImage));
         setCurrentImage(0);
-    }
-
-    const logToolChange = (tool, value) => {
-        setToolHistory((prevHistory) => [
-            ...prevHistory,
-            { tool, value, timestamp: new Date().toISOString() },
-        ]);
     };
 
-    const handleInputRelease = (tool, value) => {
-        logToolChange(tool, value);
-        console.log(toolHistory);
-    };
-
-    const applyTools = () => {
-        
+    const applyTools = async () => {
+        try {
+            const processResponse = await axios.post(
+                `https://p.primecog.com/api/users/projects/${proj_id}/process`,
+                {},
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+            console.log('Process response:', processResponse);
+            // Refresh processed images after applying tools
+            const imagesResponse = await axios.get(
+                `https://p.primecog.com/api/users/projects/${proj_id}/images`,
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+            setProcessedImages(imagesResponse.data.processed_images);
+            console.log(imagesResponse);
+        } catch (error) {
+            console.error('Error applying tools:', error);
+            alert('Error applying tools');
+        }
     };
 
     return (
@@ -217,8 +317,7 @@ const Project = () => {
                                 onMouseEnter={() => setIsEditingName(false)}
                             >
                                 {projectName}
-                                
-                                <img src="pencil.png" className="edit-icon" onClick={handleNameEdit} />
+                                <img src="pencil.png" className="edit-icon" onClick={handleNameEdit} alt="Edit" />
                             </h3>
                         )}
                     </div>
@@ -230,7 +329,8 @@ const Project = () => {
                                 setShowBasicTools(true);
                                 setShowAdvancedTools(false);
                             }}
-                        > Ferramentas básicas
+                        >
+                            Ferramentas básicas
                         </button>
 
                         <button
@@ -239,229 +339,278 @@ const Project = () => {
                                 setShowBasicTools(false);
                                 setShowAdvancedTools(true);
                             }}
-                        > Ferramentas avançadas
+                        >
+                            Ferramentas avançadas
                         </button>
                     </div>
 
                     {showBasicTools && (
-                    <div className="basic-tools-container">
-                        <ul className="tools-list">
-                            <li>
-                                <label htmlFor="dimensions">Dimensões (altura x largura): </label>
-                                <input
-                                    type="text"
-                                    id="dimensions"
-                                    value={dimensions}
-                                    onChange={handleDimensionChange}
-                                    onBlur={() => handleInputRelease('resize', {height: imgHeight, width: imgWidth})}
-                                    placeholder="e.g. 300x300"
-                                />
-                            </li>
+                        <div className="basic-tools-container">
+                            <ul className="tools-list">
+                                <li>
+                                    <label htmlFor="dimensions">Dimensões (altura x largura): </label>
+                                    <input
+                                        type="text"
+                                        id="dimensions"
+                                        value={dimensions}
+                                        onChange={handleDimensionChange}
+                                        onBlur={handleResizeRelease}
+                                        placeholder="e.g. 300x300"
+                                    />
+                                </li>
 
-                            <li>
-                                <label htmlFor="removeBackground">Remover de fundo</label>
-                                <input
-                                    type="checkbox"
-                                    id="removeBackground"
-                                    checked={removeBackground}
-                                    onChange={(e) => setRemoveBackground(e.target.checked)}
-                                    onBlur={() => handleInputRelease('removebg', {})}
-                                />
-                            </li>
+                                <li>
+                                    <label htmlFor="removeBackground">Remover de fundo</label>
+                                    <input
+                                        type="checkbox"
+                                        id="removeBackground"
+                                        checked={removeBackground}
+                                        onChange={(e) => {
+                                            setRemoveBackground(e.target.checked);
+                                            if (e.target.checked) handleRemoveBackgroundRelease();
+                                        }}
+                                    />
+                                </li>
 
-                            <li>
-                                <label htmlFor="grayscale">Gray Scale</label>
-                                <input
-                                    type="checkbox"
-                                    id="grayscale"
-                                    checked={greyScale}
-                                    onChange={(e) => setGreyScale(e.target.checked)}
-                                    onBlur={() => handleInputRelease('grayscale', {})}
-                                />
-                            </li>
+                                <li>
+                                    <label htmlFor="grayscale">Gray Scale</label>
+                                    <input
+                                        type="checkbox"
+                                        id="grayscale"
+                                        checked={greyScale}
+                                        onChange={(e) => {
+                                            setGreyScale(e.target.checked);
+                                            if (e.target.checked) handleGrayscaleRelease();
+                                        }}
+                                    />
+                                </li>
 
-                            <li>
-                                <label htmlFor="watermark">Marca d'água</label>
-                                <input
-                                    type="checkbox"
-                                    id="watermark"
-                                    checked={watermark}
-                                    onChange={(e) => setWatermark(e.target.checked)}
-                                    onBlur={() => handleInputRelease('watermark', {})}
-                                />
-                            </li>
+                                <li>
+                                    <label htmlFor="watermark">Marca d'água</label>
+                                    <input
+                                        type="checkbox"
+                                        id="watermark"
+                                        checked={watermark}
+                                        onChange={(e) => {
+                                            setWatermark(e.target.checked);
+                                            if (e.target.checked) handleWatermarkRelease();
+                                        }}
+                                    />
+                                </li>
 
-                            <li>
-                                <label htmlFor="binarize">Binarização: {binarize}</label>
-                                <input
-                                    type="range"
-                                    id="binarize"
-                                    min="0"
-                                    max="255"
-                                    value={binarize}
-                                    onChange={(e) => setBinarize(e.target.value)}
-                                    onBlur={() => handleInputRelease('binary', {})}
-                                />
-                            </li>
+                                <li>
+                                    <label htmlFor="binarize">Binarização: {binarize}</label>
+                                    <input
+                                        type="range"
+                                        id="binarize"
+                                        min="0"
+                                        max="255"
+                                        value={binarize}
+                                        onChange={(e) => setBinarize(e.target.value)}
+                                        onBlur={handleBinarizeRelease}
+                                    />
+                                </li>
 
-                            <li>
-                                <label htmlFor="rotate">Rodar: {rotate}º</label>
-                                <input
-                                    type="range"
-                                    id="rotate"
-                                    min="0"
-                                    max="360"
-                                    value={rotate}
-                                    onChange={(e) => setRotate(e.target.value)}
-                                    onBlur={() => handleInputRelease('rotation', {angle: rotate})}
-                                />
-                            </li>
+                                <li>
+                                    <label htmlFor="rotate">Rodar: {rotate}º</label>
+                                    <input
+                                        type="range"
+                                        id="rotate"
+                                        min="0"
+                                        max="360"
+                                        value={rotate}
+                                        onChange={(e) => setRotate(e.target.value)}
+                                        onBlur={handleRotateRelease}
+                                    />
+                                </li>
 
-                            <li className="range-input">
-                                <label htmlFor="brightness">Brilho: {brightness}</label>
-                                <input
-                                    type="range"
-                                    id="brightness"
-                                    min="-100"
-                                    max="100"
-                                    value={brightness}
-                                    onChange={(e) => setBrightness(e.target.value)}
-                                    onBlur={() => handleInputRelease('brightness', {brightness: brightness, contrast: contrast})}
-                                />
-                            </li>
-
-                            <li>
-                                <label htmlFor="contrast">Contraste: {contrast}</label>
-                                <input
-                                    type="range"
-                                    id="contrast"
-                                    min="0"
-                                    max="200"
-                                    value={contrast}
-                                    onChange={(e) => setContrast(e.target.value)}
-                                    onBlur={() => handleInputRelease('brightness', {brightness: brightness, contrast: contrast})}
-                                />
-                            </li>
-
-                            <li>
-                                <label htmlFor="beselColor">Cor da borda</label>
-                                <input
-                                    type="color"
-                                    id="beselColor"
-                                    value={beselColor}
-                                    onChange={(e) => setBeselColor(e.target.value)}
-                                    onBlur={() => handleInputRelease('bezel', {bezelColor: beselColor, bezelThickness: beselWidth})}
-                                />
-                            </li>
-
-                            <li>
-                                <label htmlFor="beselWidth">Largura da borda (px)</label>
-                                <input
-                                    type="text"
-                                    id="beselWidth"
-                                    placeholder="0"
-                                    value={beselWidth}
-                                    onChange={(e) => setBeselWidth(e.target.value)}
-                                    onBlur={() => handleInputRelease('bezel', {bezelColor: beselColor, bezelThickness: beselWidth})}
-                                />
-                            </li>
-                        </ul>
-                    </div>
-                    )}
-
-                    {showAdvancedTools && (
-                    <div className="advanced-tools-container">
-
-                    </div>
-                    )}
-
-                    <div className="buttons-container">
-                        <button className="apply-button" onClick={applyTools}>Aplicar</button>
-                        <button className="save-button">Guardar</button>
-                        <button className="reset-button" onClick={handleReset}>
-                            Reset
-                        </button>
-                    </div>
-                </div>
-
-                <div className="images-container">
-                    {imageUrl && (
-                        <>
-                            <div className="images-mnt-buttons-container">
-                                <button className="add-image-button" onClick={handleCurrentImageDelete}>
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        width="24"
-                                        height="24"
-                                    >
-                                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                                    </svg>
-                                    Remover imagem
-                                </button>
-
-                                <button className="add-image-button" onClick={() => setShowAddImage(true)}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
-                                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                                    </svg>
-                                    Adicionar imagens
-                                </button>
-
-                                <button className="download-button" onClick={handleDownload} disabled={isDownloading}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                        <polyline points="7 10 12 15 17 10" />
-                                        <line x1="12" y1="15" x2="12" y2="3" />
-                                    </svg>
-                                    {isDownloading ? 'Downloading...' : (images?.length > 1 ? 'Download All' : 'Download')}
-                                </button>
+                                <li className="range-input">
+                                    <label htmlFor="brightness">Brilho: {brightness}</label>
+                                    <input
+                                        type="range"
+                                        id="brightness"
+                                        min="-100"
+                                        max="100"
+                                        value={brightness}
+                                        onChange={(e) => {
+                                            setBrightness(e.target.value);
+                                            setIsAdjusting(true);
+                                        }}
+                                        onBlur={handleBrightnessContrastRelease}
+                                        />
+                                    </li>
+    
+                                    <li>
+                                        <label htmlFor="contrast">Contraste: {contrast}</label>
+                                        <input
+                                            type="range"
+                                            id="contrast"
+                                            min="0"
+                                            max="200"
+                                            value={contrast}
+                                            onChange={(e) => {
+                                                setContrast(e.target.value);
+                                                setIsAdjusting(true);
+                                            }}
+                                            onBlur={handleBrightnessContrastRelease}
+                                        />
+                                    </li>
+    
+                                    <li>
+                                        <label htmlFor="beselColor">Cor da borda</label>
+                                        <input
+                                            type="color"
+                                            id="beselColor"
+                                            value={beselColor}
+                                            onChange={(e) => setBeselColor(e.target.value)}
+                                        />
+                                    </li>
+    
+                                    <li>
+                                        <label htmlFor="beselWidth">Largura da borda (px)</label>
+                                        <input
+                                            type="text"
+                                            id="beselWidth"
+                                            placeholder="0"
+                                            value={beselWidth}
+                                            onChange={(e) => setBeselWidth(e.target.value)}
+                                            onBlur={handleBezelRelease}
+                                        />
+                                    </li>
+                                </ul>
                             </div>
-            
-                            <img
-                                src={imageUrl.url}
-                                alt="project"
-                                className="current-image"
-                                style={{
-                                    transform: `rotate(${rotate}deg)`,
-                                    width: `${imgWidth === 'auto' ? originalWidth : imgWidth}px`,
-                                    height: `${imgHeight === 'auto' ? originalHeight : imgHeight}px`,
-                                    filter: `
-                                    brightness(${Math.min(Math.max(100 + brightness, 0), 200)}%)
-                                    contrast(${Math.min(Math.max(contrast, 0), 200)}%)
-                                    ${binarize ? `grayscale(100%) contrast(200%)` : 'grayscale(0%) contrast(100%)'}`,
-                                }}
-                            />
-                        </>
-                    )}
-                    
-                    {images && images.length > 1 && (
-                        <div className="image-buttons">
-                            <button
-                                onClick={() => setCurrentImage((currentImage + images.length - 1) % images.length)}>
-                                Anterior
-                            </button>
-
-                            <button
-                                onClick={() => setCurrentImage((currentImage + 1) % images.length)}>
-                                Próxima
+                        )}
+    
+                        {showAdvancedTools && (
+                            <div className="advanced-tools-container">
+                                {/* Advanced tools content */}
+                            </div>
+                        )}
+    
+                        <div className="buttons-container">
+                            <button className="apply-button" onClick={applyTools}>Aplicar</button>
+                            <button className="reset-button" onClick={handleReset}>
+                                Reset
                             </button>
                         </div>
-                    )}
+                    </div>
+    
+                    <div className="images-container">
+                        {imageUrl && (
+                            <>
+                                <div className="images-mnt-buttons-container">
+                                    <button className="add-image-button" onClick={handleCurrentImageDelete}>
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            width="24"
+                                            height="24"
+                                        >
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
+                                        Remover imagem
+                                    </button>
+    
+                                    <button className="add-image-button" onClick={() => setShowAddImage(true)}>
+                                        <svg 
+                                            xmlns="http://www.w3.org/2000/svg" 
+                                            viewBox="0 0 24 24" 
+                                            fill="none" 
+                                            stroke="currentColor" 
+                                            strokeWidth="2" 
+                                            strokeLinecap="round" 
+                                            strokeLinejoin="round" 
+                                            width="24" 
+                                            height="24"
+                                        >
+                                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                                        </svg>
+                                        Adicionar imagens
+                                    </button>
+    
+                                    <button className="download-button" onClick={handleDownload} disabled={isDownloading}>
+                                        <svg 
+                                            xmlns="http://www.w3.org/2000/svg" 
+                                            viewBox="0 0 24 24" 
+                                            fill="none" 
+                                            stroke="currentColor" 
+                                            strokeWidth="2" 
+                                            strokeLinecap="round" 
+                                            strokeLinejoin="round"
+                                        >
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                            <polyline points="7 10 12 15 17 10" />
+                                            <line x1="12" y1="15" x2="12" y2="3" />
+                                        </svg>
+                                        {isDownloading ? 'Downloading...' : (images?.length > 1 ? 'Download All' : 'Download')}
+                                    </button>
+                                </div>
+                
+                                <div className="images-display">
+                                    <div className="image-wrapper">
+                                        <img
+                                            ref={imageRef}
+                                            src={imageUrl.url}
+                                            alt="Original"
+                                            className="main-image"
+                                        />
+                                        <span className="image-label">Original</span>
+                                    </div>
+    
+                                    {processedImageUrl && (
+                                        <div className="image-wrapper">
+                                            <img 
+                                                src={processedImageUrl.url}
+                                                alt="Processed"
+                                                className="processed-image"
+                                            />
+                                            <span className="image-label">Processed</span>
+                                        </div>
+                                    )}
+                                </div>
+    
+                                {images && images.length > 1 && (
+                                    <div className="image-buttons">
+                                        <button
+                                            onClick={() => {
+                                                setCurrentImage((currentImage + images.length - 1) % images.length);
+                                                if (processedImages && processedImages.length > 0) {
+                                                    setCurrentProcessedImage((currentProcessedImage + processedImages.length - 1) % processedImages.length);
+                                                }
+                                            }}
+                                        >
+                                            Anterior
+                                        </button>
+    
+                                        <button
+                                            onClick={() => {
+                                                setCurrentImage((currentImage + 1) % images.length);
+                                                if (processedImages && processedImages.length > 0) {
+                                                    setCurrentProcessedImage((currentProcessedImage + 1) % processedImages.length);
+                                                }
+                                            }}
+                                        >
+                                            Próxima
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
                 </div>
+    
+                {showAddImage && (
+                    <ProjectAddImage onClose={() => setShowAddImage(false)} onImagesUploaded={handleImagesUploaded} />
+                )}
             </div>
-
-            {showAddImage && (
-                <ProjectAddImage onClose={() => setShowAddImage(false)} onImagesUploaded={handleImagesUploaded} />
-            )}
-        </div>
-    );
-};
-
-export default Project;
+        );
+    };
+    
+    export default Project;
