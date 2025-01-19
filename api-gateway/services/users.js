@@ -37,6 +37,21 @@ module.exports.login_user = (email, password) => {
     });
 }
 
+module.exports.login_anonimo = () => {
+    return axios.post(
+        this.usersRoute('/users/authenticate/anonimo')
+    ).then((result) => {
+        let resp = result.data
+        if (resp != null) {
+            return resp
+        } else {
+            throw new Error('Error: Something went wrong')
+        }
+    }).catch((err) => {
+        throw err
+    });
+}
+
 module.exports.register_user = (name, email, password) => {
     return axios.post(
         this.usersRoute('/users'),

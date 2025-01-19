@@ -77,7 +77,6 @@ module.exports.delete_project = (reqHeaders, proj_id) => {
 // ------------ IMAGES MANAGEMENT --------------------------------
 
 
-
 module.exports.upload_image = (reqHeaders, proj_id, formData) => {
     const { authorization, ...otherHeaders } = reqHeaders; // Extract only necessary headers
 
@@ -97,7 +96,6 @@ module.exports.upload_image = (reqHeaders, proj_id, formData) => {
         throw new Error(`Failed to upload image: ${err.response?.data?.error || err.message}`);
     });
 };
-
 
 module.exports.get_images = (reqHeaders, proj_id) => {
     return axios.get(
@@ -131,8 +129,6 @@ module.exports.delete_image = (reqHeaders, proj_id, image_id) => {
     });
 }
 
-
-
 module.exports.serve_image = (bucket, filename) => {
     const imageUrl = this.projectsRoute(`/images/${bucket}/${filename}`); // Backend route to serve the image
 
@@ -147,6 +143,7 @@ module.exports.serve_image = (bucket, filename) => {
             );
         });
 };
+
 
 // ------------ TOOLS MANAGEMENT --------------------------------
 
@@ -243,7 +240,6 @@ module.exports.trigger_process = (reqHeaders, proj_id) => {
     });
 };
 
-
 module.exports.process_status = (reqHeaders, proj_id) => {
     return axios.get(
         this.projectsRoute('/projects/' + proj_id + '/status'),
@@ -259,7 +255,6 @@ module.exports.process_status = (reqHeaders, proj_id) => {
         throw err
     });
 }
-
 
 module.exports.get_project = (reqHeaders, proj_id) => {
     return axios
