@@ -4,21 +4,24 @@ import logging
 import boto3
 from .core.tool import Tool
 import os
-from .bezel_request_message import  BezelParameters
+from .bezel_request_message import BezelParameters
 from .config import MINIO_ACCESS_KEY, MINIO_SECRET_KEY
 
 LOGGER = logging.getLogger(__name__)
 
 class BezelTool(Tool):
 
-    def __init__(self, default_bezel_color: str = "black", default_bezel_thickness: int = 10) -> None:
+    def __init__(self, default_bezel_color: str = "#000000", default_bezel_thickness: int = 10) -> None:
         """
         Initialize the BezelTool with default bezel color and thickness.
 
         Args:
-            default_bezel_color (str): Default color of the bezel (e.g., "red", "#000000", (255, 255, 255)).
+            default_bezel_color (str): Default color of the bezel in hexadecimal format (e.g., "#000000").
             default_bezel_thickness (int): Default thickness of the bezel in pixels.
         """
+        if not self.is_valid_hex_color(default_bezel_color):
+            raise ValueError(f"Invalid default bezel color: {default_bezel_color}. Must be in hexadecimal format.")
+        
         self.default_bezel_color = default_bezel_color
         self.default_bezel_thickness = default_bezel_thickness
 
@@ -26,7 +29,7 @@ class BezelTool(Tool):
         self.s3_client = boto3.client(
             "s3",
             endpoint_url="http://minio:9000",  # Adjust for your MinIO setup
-            aws_access_key_id=MINIO_ACCESS_KEY, #vem do ficheiro config.py
+            aws_access_key_id=MINIO_ACCESS_KEY,
             aws_secret_access_key=MINIO_SECRET_KEY,
         )
 
@@ -43,9 +46,12 @@ class BezelTool(Tool):
             bezel_color = parameters.bezelColor or self.default_bezel_color
             bezel_thickness = parameters.bezelThickness or self.default_bezel_thickness
 
+            # Validate bezel color is hexadecimal
+            if not self.is_valid_hex_color(bezel_color):
+                raise ValueError(f"Invalid bezel color: {bezel_color}. Must be in hexadecimal format.")
+
             # Parse input and output bucket/key from URIs
             input_bucket, input_key = self.parse_s3_uri(parameters.inputImageURI)
-            
             output_bucket, output_key = self.parse_s3_uri(parameters.outputImageURI)
 
             # Download the input image from MinIO
@@ -94,3 +100,22 @@ class BezelTool(Tool):
 
         bucket, key = parts
         return bucket, key
+
+    @staticmethod
+    def is_valid_hex_color(color: str) -> bool:
+        """
+        Validate if the provided color is a valid hexadecimal color.
+
+        Args:
+            color (str): Color string to validate.
+
+        Returns:
+            bool: True if valid, False otherwise.
+        """
+        if isinstance(color, str) and color.startswith("#") and len(color) in (7, 9):
+            try:
+                int(color[1:], 16)  # Try to parse the hexadecimal part
+                return True
+            except ValueError:
+                pass
+        return False
