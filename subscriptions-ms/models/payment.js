@@ -19,6 +19,6 @@ const PaymentSchema = new mongoose.Schema({
     }
 }, { collection: 'payments' });
 
-PaymentSchema.index({ subscription_id: 1 });
+PaymentSchema.index({ subs_id: 1 });
 
 module.exports = mongoose.model('Payment', PaymentSchema);

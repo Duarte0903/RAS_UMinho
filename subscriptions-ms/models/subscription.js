@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { v4: uuidv4 } = require('uuid');
+const Payment = require('../models/payment');
 
 const SubscriptionSchema = new mongoose.Schema({
     _id: { type: String, required: true, default: uuidv4 }, // UUID for subscription
@@ -28,6 +29,19 @@ const SubscriptionSchema = new mongoose.Schema({
     inserted_at: { type: Date, default: Date.now }
 }, { collection: 'subscriptions' });
 
+// Index for better performance searching by user_id
 SubscriptionSchema.index({ user_id: 1 });
+
+// Middleware to delete payments on cascade before deleting a subscription
+SubscriptionSchema.pre('findOneAndDelete', async function(next) {
+    const subscriptionId = this._conditions._id;
+
+    if (subscriptionId) {
+        await Payment.deleteMany({ subs_id: subscriptionId });
+    }
+
+    next();
+});
+
 
 module.exports = mongoose.model('Subscription', SubscriptionSchema);

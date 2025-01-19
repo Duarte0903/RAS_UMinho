@@ -60,7 +60,7 @@ router.delete('/:subs_id', extract_user, async (req, res) => {
 // Get all payments
 router.get('/:subs_id/payments', extract_user, async (req, res) => {
     try {
-        const payments = await subsController.getPayments(req.params.subs_id, req.user.sub);
+        const payments = await subsController.getPayments(req.user.sub, req.params.subs_id);
         res.status(200).json(payments);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching payments', error: error.message });
@@ -81,9 +81,9 @@ router.post('/:subs_id/payments', extract_user, async (req, res) => {
 router.put('/:subs_id/payments/:pay_id', extract_user, async (req, res) => {
     try {
         const updatedPayment = await subsController.updatePayment(
+            req.user.sub, 
             req.params.subs_id,
             req.params.pay_id,
-            req.user.sub, 
             req.body
         );
         if (!updatedPayment) {
@@ -98,13 +98,13 @@ router.put('/:subs_id/payments/:pay_id', extract_user, async (req, res) => {
 // Delete a payment by ID
 router.delete('/:subs_id/payments/:pay_id', extract_user, async (req, res) => {
     try {
-        const deletedPayment = await subsController.deletePayment(req.params.subs_id, req.params.pay_id, req.user.sub);
+        const deletedPayment = await subsController.deletePayment(req.user.sub, req.params.subs_id, req.params.pay_id);
         if (!deletedPayment) {
             return res.status(404).json({ message: 'Subscription not found' });
         }
-        res.status(200).json({ message: 'Subscription deleted successfully' });
+        res.status(200).json({ message: 'Payment deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Error deleting subscription', error: error.message });
+        res.status(500).json({ message: 'Error deleting payment', error: error.message });
     }
 });
 

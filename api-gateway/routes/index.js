@@ -41,7 +41,7 @@ router.post('/api/users', function (req, res) {
         .catch(err => handleError(res, err));
 });
 
-router.put('/api/users', validateJWT, function (req, res) {
+router.put('/api/users', validateJWT, stopanonimo, function (req, res) {
     users.update_user(req.headers, req.body.name, req.body.email, req.body.password)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
@@ -63,7 +63,7 @@ router.put('/api/users/type', validateJWT, stopanonimo, function (req, res) {
                 .then(subs => {
                     if (new_user_type === 'premium') {
                         // Reativar subscrição existente
-                        subscriptions.update_subscription(req.headers, subs._id, subs.type, 'active');
+                        subscriptions.update_subscription(req.headers, subs._id, req.body.subs.type, 'active');
                     } else {
                         // Tornar a subscrição inativa
                         subscriptions.update_subscription(req.headers, subs._id, subs.type, 'inactive');
@@ -116,20 +116,8 @@ router.get('/api/users/subscriptions', validateJWT, stopanonimo, function (req, 
         .catch(err => handleError(res, err));
 });
 
-router.post('/api/users/subscriptions', validateJWT, stopanonimo, function (req, res) {
-    subscriptions.create_subscription(req.headers, req.body.type, req.body.state)
-        .then(result => res.jsonp(result))
-        .catch(err => handleError(res, err));
-});
-
 router.put('/api/users/subscriptions/:subs_id', validateJWT, stopanonimo, function (req, res) {
-    subscriptions.update_subscription(req.headers, req.params.subs_id, req.body.type, req.body.state)
-        .then(result => res.jsonp(result))
-        .catch(err => handleError(res, err));
-});
-
-router.delete('/api/users/subscriptions/:subs_id', validateJWT, stopanonimo, function (req, res) {
-    subscriptions.delete_subscription(req.headers, req.params.subs_id)
+    subscriptions.update_subscription(req.headers, req.params.subs_id, req.body.type) //state default to active
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });

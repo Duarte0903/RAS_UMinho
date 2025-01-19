@@ -38,7 +38,7 @@ module.exports.create_subscription = (reqHeaders, type, state) => {
     });
 }
 
-module.exports.update_subscription = (reqHeaders, subs_id, type, state) => {
+module.exports.update_subscription = (reqHeaders, subs_id, type, state='active') => {
     return axios.put(
         this.subscriptionsRoute('/subscriptions/' + subs_id),
         { "type": type, "state": state },
@@ -126,7 +126,7 @@ module.exports.update_payment = (reqHeaders, subs_id, pay_id, extra) => {
 }
 
 module.exports.delete_payment = (reqHeaders, subs_id, pay_id) => {
-    return axios.put(
+    return axios.delete(
         this.subscriptionsRoute('/subscriptions/' + subs_id + '/payments/' + pay_id),
         createHeaders(reqHeaders)
     ).then((result) => {

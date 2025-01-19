@@ -89,8 +89,8 @@ module.exports.deleteSubscription = async (subs_id, user_id) => {
 
 
 // Get all payments associated to a subscription
-module.exports.getPayments = async (subs_id, user_id) => {
-    const subs = await Subscription.findOne({ subs_id: subs_id, user_id: user_id }).exec();
+module.exports.getPayments = async (user_id, subs_id) => {
+    const subs = await Subscription.findOne({ _id: subs_id, user_id: user_id }).exec();
     if (!subs) {
         throw new Error("Subscription not found");
     }
@@ -104,7 +104,7 @@ module.exports.createPayment = async (user_id, subs_id, data) => {
         throw new Error("Missing required fields: user_id, subs_id, or extra");
     }
     
-    const subs = await Subscription.findOne({ subs_id: subs_id, user_id: user_id }).exec();
+    const subs = await Subscription.findOne({ _id: subs_id, user_id: user_id }).exec();
     if (!subs) {
         throw new Error("Subscription not found");
     }
@@ -122,44 +122,38 @@ module.exports.createPayment = async (user_id, subs_id, data) => {
 };
 
 // Update a payment by ID
-module.exports.updatePayment = async (subs_id, pay_id, user_id, data) => {
+module.exports.updatePayment = async (user_id, subs_id, pay_id, data) => {
     const { extra } = data;
     if (!user_id || !subs_id || !pay_id || !extra) {
         throw new Error("Missing required fields: user_id, subs_id, pay_id, or extra");
     }
     
-    const subs = await Subscription.findOne({ subs_id: subs_id, user_id: user_id }).exec();
+    const subs = await Subscription.findOne({ _id: subs_id, user_id: user_id }).exec();
     if (!subs) {
         throw new Error("Subscription not found");
     }
 
     try {
-        const updatedPayment = await Payment.findOneAndUpdate(
-            { _id: pay_id, subs_id: subs_id }, // Use _id para buscar o documento
-            updates,
-            {
-                new: true,          // Retorna o documento atualizado
-                runValidators: true // Aplica as validações do esquema
-            }
-        );
-
+        const updatedPayment = await Payment.findOne({ _id: pay_id, subs_id: subs_id });
         if (!updatedPayment) {
             throw new Error("Payment not found");
         }
+        
+        updatedPayment.extra = extra;
 
-        return updatedPayment;
+        return await updatedPayment.save();
     } catch (error) {
         throw new Error(`Error updating payment: ${error.message}`);
     }
 };
 
 // Delete a payment by ID
-module.exports.deletePayment = async (subs_id, pay_id, user_id) => {
+module.exports.deletePayment = async (user_id, subs_id, pay_id) => {
     if (!user_id || !subs_id || !pay_id) {
         throw new Error("Missing required fields: user_id, subs_id, or pay_id");
     }
 
-    const subs = await Subscription.findOne({ subs_id: subs_id, user_id: user_id }).exec();
+    const subs = await Subscription.findOne({ _id: subs_id, user_id: user_id }).exec();
     if (!subs) {
         throw new Error("Subscription not found");
     }
