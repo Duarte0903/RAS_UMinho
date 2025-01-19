@@ -25,7 +25,7 @@ const restriction = (req, res, next) => {
     var user = req.user 
     var type = user["type"]
     var limits = {
-        "anônimo": 5,
+        "anonimo": 5,
         "gratuito": 10,
         "premium": float("inf")  
     }

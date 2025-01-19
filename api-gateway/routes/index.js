@@ -204,6 +204,11 @@ router.post(
         logger.info('Received file', {
             fileName: req.file.originalname        });
 
+        var user = req.user 
+        var type = user["type"]
+
+        if(req.file.size >=1000 && type === "anonimo") return res.status(401).json({ error: "Image too big!" })
+
         // Prepare FormData to send to the backend
         const formData = new FormData();
         formData.append('file', req.file.buffer, {
