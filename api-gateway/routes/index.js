@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { validateJWT, restriction } = require('../authentication/authentication');
+const { validateJWT, restriction, stopanonimo } = require('../authentication/authentication');
 const multer = require('multer');
 const upload = multer(); // For in-memory storage; configure storage as needed
 const logger = require('./logger'); // Import the logger
@@ -51,7 +51,7 @@ router.put('/api/users', validateJWT, function (req, res) {
     - 'type' ('gratuito' ou 'premium') - tipo de plano do user
     - 'subs_type' ('monthly' ou 'annual') - tipo de subscricao escolhida
 */
-router.put('/api/users/type', validateJWT, function (req, res) {
+router.put('/api/users/type', validateJWT, stopanonimo, function (req, res) {
     let old_user_type = req.user.type;
     let new_user_type = req.body.type;
     if (old_user_type === new_user_type)
@@ -109,49 +109,49 @@ router.get('/api/users/days', validateJWT, function (req, res) {
 
 // ------------ SUBSCRIPTIONS ------------
 
-router.get('/api/users/subscriptions', validateJWT, function (req, res) {
+router.get('/api/users/subscriptions', validateJWT, stopanonimo, function (req, res) {
     subscriptions.get_subscription(req.headers)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });
 
-router.post('/api/users/subscriptions', validateJWT, function (req, res) {
+router.post('/api/users/subscriptions', validateJWT, stopanonimo, function (req, res) {
     subscriptions.create_subscription(req.headers, req.body.type, req.body.state)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });
 
-router.put('/api/users/subscriptions/:subs_id', validateJWT, function (req, res) {
+router.put('/api/users/subscriptions/:subs_id', validateJWT, stopanonimo, function (req, res) {
     subscriptions.update_subscription(req.headers, req.params.subs_id, req.body.type, req.body.state)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });
 
-router.delete('/api/users/subscriptions/:subs_id', validateJWT, function (req, res) {
+router.delete('/api/users/subscriptions/:subs_id', validateJWT, stopanonimo, function (req, res) {
     subscriptions.delete_subscription(req.headers, req.params.subs_id)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });
 
-router.get('/api/users/subscriptions/:subs_id/payments', validateJWT, function (req, res) {
+router.get('/api/users/subscriptions/:subs_id/payments', validateJWT, stopanonimo, function (req, res) {
     subscriptions.get_payments(req.headers, req.params.subs_id)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });
 
-router.post('/api/users/subscriptions/:subs_id/payments', validateJWT, function (req, res) {
+router.post('/api/users/subscriptions/:subs_id/payments', validateJWT, stopanonimo, function (req, res) {
     subscriptions.create_payment(req.headers, req.params.subs_id, req.body.extra)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });
 
-router.put('/api/users/subscriptions/:subs_id/payments/:pay_id', validateJWT, function (req, res) {
+router.put('/api/users/subscriptions/:subs_id/payments/:pay_id', validateJWT, stopanonimo, function (req, res) {
     subscriptions.update_payment(req.headers, req.params.subs_id, req.params.pay_id, req.body.extra)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });
 
-router.delete('/api/users/subscriptions/:subs_id/payments/:pay_id', validateJWT, function (req, res) {
+router.delete('/api/users/subscriptions/:subs_id/payments/:pay_id', validateJWT, stopanonimo, function (req, res) {
     subscriptions.delete_payment(req.headers, req.params.subs_id, req.params.pay_id)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
