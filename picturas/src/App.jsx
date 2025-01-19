@@ -1,5 +1,5 @@
 import './App.css'
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import AOS from "aos";
 import "aos/dist/aos.css";
 import Login from './pages/login/login';
@@ -9,7 +9,6 @@ import Profile from './pages/profile/profile';
 import Plan from './pages/plan/plan';
 import Register from './pages/register/register';
 import { useSessionStore } from './stores/session_store';
-
 import { useEffect } from 'react';
 
 function App() {
@@ -20,17 +19,23 @@ function App() {
       duration: 300,
       easing: 'ease-out-cubic',
     });
-  }, []); // Empty dependency array ensures it runs only once.
+  }, []);
+
+  const { token } = useSessionStore();
+
+  const isTokenNull = (token) => {
+    return token !== null;
+  };
 
   return (
     <>
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/project/:project_id" element={<Project />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/plan" element={<Plan />} />
+        <Route path="/home" element={isTokenNull(token) ? <Home /> : <Navigate to="/" />} />
+        <Route path="/project/:project_id" element={isTokenNull(token) ? <Project /> : <Navigate to="/" />} />
+        <Route path="/profile" element={isTokenNull(token) ? <Profile /> : <Navigate to="/" />} />
+        <Route path="/plan" element={isTokenNull(token) ? <Plan /> : <Navigate to="/" />} />
       </Routes>
     </>
   );

@@ -8,24 +8,24 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const { login } = useSessionStore();
-    const navigate = useNavigate(); // Initialize useNavigate
+    const navigate = useNavigate();
 
     const handleLogin = async (event) => {
-        event.preventDefault(); // Prevent page reload
+        event.preventDefault();
         try {
             const response = await axios.post('https://p.primecog.com/api/users/authenticate', { email, password });
             const { token, user } = response.data;
 
-            // Store token and user details in session store
             login(user.email, user.name, user.type, user.id, token);
 
-            // Redirect to the home page
+            console.log('login successfull', email, token);
+
             navigate('/home');
+            console.log('Navigating to /home');
         } catch (error) {
             if (error.response) {
                 const { status, data } = error.response;
 
-                // Display server error message if available
                 if (data && data.message) {
                     alert(`Login failed: ${data.message}`);
                 } else if (status === 401) {
@@ -40,9 +40,16 @@ const Login = () => {
         }
     };
 
-    const handleAnon = () => {
-        login(null, 'Anónimo', 'anon', null, null);
-        navigate('/home');
+    const handleAnon = async () => {
+        try {
+            const anonResponse = await axios.post('https://p.primecog.com/api/users/authenticate/anonimo')
+            console.log(anonResponse.data);
+            const { token, user } = anonResponse.data;
+            login(user.email, user.name, user.type, user.id, token);
+            navigate('/home');
+        } catch (error) {
+            console.log(error)
+        }
     };
 
     return (
@@ -76,7 +83,7 @@ const Login = () => {
                     <div className="extra-options-container">
                         <Link to="/register" className="extra-option">Criar conta</Link>
                         <button className="extra-option" type="button" onClick={handleAnon}>
-                            <Link to="/home">Continuar como anónimo</Link>
+                            Continuar como anónimo
                         </button>
                     </div>
                 </form>

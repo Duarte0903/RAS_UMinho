@@ -75,7 +75,6 @@ const NewProjectDetails = ({ onClose }) => {
         }
     
         try {
-            // Create the project
             const projectResponse = await axios.post(
                 'https://p.primecog.com/api/users/projects',
                 { name: projectName },
@@ -88,7 +87,7 @@ const NewProjectDetails = ({ onClose }) => {
             for (const image of images) {
                 if (!(image instanceof File)) {
                     console.error('Invalid file:', image);
-                    continue; // Skip invalid files
+                    continue;
                 }
     
                 const formData = new FormData();
@@ -96,7 +95,7 @@ const NewProjectDetails = ({ onClose }) => {
     
                 console.log('Uploading image:', image.name);
                 formData.forEach((value, key) => {
-                    console.log(`${key}:`, value); // Debug the FormData content
+                    console.log(`${key}:`, value);
                 });
     
                 await axios.post(
@@ -105,16 +104,14 @@ const NewProjectDetails = ({ onClose }) => {
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,
-                            // Let Axios handle Content-Type
                         },
                     }
                 );
     
                 console.log(`Imagem enviada com sucesso: ${image.name}`);
             }
-    
-            alert('Projeto criado e imagens enviadas com sucesso!');
             onClose();
+            window.location.reload();
         } catch (error) {
             console.error('Erro ao criar o projeto ou enviar imagens:', error.response?.data || error.message);
             alert('Erro ao criar projeto ou enviar imagens.');

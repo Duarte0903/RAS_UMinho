@@ -23,7 +23,7 @@ const Project = () => {
     const [currentImage, setCurrentImage] = useState(0);
     const [currentProcessedImage, setCurrentProcessedImage] = useState(0);
     const imageUrl = images && images[currentImage] ? images[currentImage] : null;
-    const processedImageUrl = processedImages && processedImages[currentProcessedImage] ? processedImages[currentProcessedImage] : null;
+    const processedImageUrl = processedImages &&  processedImages.length > 0 ? processedImages[processedImages.length - 1] : null;
     const [showAdvancedTools, setShowAdvancedTools] = useState(false);
     const [showBasicTools, setShowBasicTools] = useState(true);
     const [isDownloading, setIsDownloading] = useState(false);
@@ -46,8 +46,6 @@ const Project = () => {
     let [greyScale, setGreyScale] = useState(false);
     let [imgWidth, setImgWidth] = useState('auto');
     let [imgHeight, setImgHeight] = useState('auto');
-    const [originalWidth, setOriginalWidth] = useState(null);
-    const [originalHeight, setOriginalHeight] = useState(null);
     let imageRef = useRef(null);
 
     useEffect(() => {
@@ -69,7 +67,7 @@ const Project = () => {
                 );
                 setImages(imagesResponse.data.original_images);
                 setProcessedImages(imagesResponse.data.processed_images);
-                console.log(imagesResponse.data.processed_images);
+                console.log(imagesResponse.data);
             } catch (error) {
                 console.error('Error fetching project:', error);
             }
@@ -89,8 +87,17 @@ const Project = () => {
         setIsEditingName(true);
     };
 
-    const handleImagesUploaded = (newImages) => {
-        setImages(prevImages => [...prevImages, ...newImages]);
+    const handleImagesUploaded = async () => {
+        const imagesResponse = await axios.get(
+            `https://p.primecog.com/api/users/projects/${proj_id}/images`, 
+            {
+                headers: { Authorization: `Bearer ${token}` }
+            }
+        );
+        setImages(imagesResponse.data.original_images);
+        setProcessedImages(imagesResponse.data.processed_images);
+        console.log(imagesResponse.data);
+        window.location.reload();
     };
 
     const handleDimensionChange = (event) => {
@@ -101,6 +108,11 @@ const Project = () => {
     };
 
     const handleInputRelease = async (tool, kind, value) => {
+        if (!tool || !kind || !value) {
+            console.error('Missing required parameters:', { tool, kind, value });
+            return;
+        }
+
         try {
             const toolRequest = {
                 position: toolPosition,
@@ -118,6 +130,7 @@ const Project = () => {
             );
 
             if (response.status === 200) {
+                console.log('Tool added successfully');
                 setToolPosition(prev => prev + 1);
             }
 
@@ -137,20 +150,23 @@ const Project = () => {
         }
     };
 
-    const handleRemoveBackgroundRelease = () => {
-        if (removeBackground) {
+    const handleRemoveBackgroundChange = (e) => {
+        setRemoveBackground(e.target.checked);
+        if (e.target.checked) {
             handleInputRelease('removebg', 'basic', {});
         }
     };
-
-    const handleGrayscaleRelease = () => {
-        if (greyScale) {
+    
+    const handleGrayscaleChange = (e) => {
+        setGreyScale(e.target.checked);
+        if (e.target.checked) {
             handleInputRelease('grayscale', 'basic', {});
         }
     };
-
-    const handleWatermarkRelease = () => {
-        if (watermark) {
+    
+    const handleWatermarkChange = (e) => {
+        setWatermark(e.target.checked);
+        if (e.target.checked) {
             handleInputRelease('watermark', 'basic', {});
         }
     };
@@ -184,8 +200,8 @@ const Project = () => {
     const handleBezelRelease = () => {
         if (beselWidth > 0) {
             handleInputRelease('bezel', 'basic', {
-                color: beselColor,
-                thickness: parseInt(beselWidth)
+                bezelColor: String(beselColor),
+                bezelThickness: parseInt(beselWidth)
             });
         }
     };
@@ -207,7 +223,7 @@ const Project = () => {
     };
 
     const handleDownload = async () => {
-        if (!images || images.length === 0) {
+        if (!processedImages || processedImages.length === 0) {
             console.error('No images to download');
             return;
         }
@@ -215,32 +231,31 @@ const Project = () => {
         try {
             setIsDownloading(true);
             if (images.length === 1) {
-                const imageBlob = images[0];
-                const imageUrl = URL.createObjectURL(imageBlob);
-                
+                // Apenas uma imagem para download
+                const image = processedImages[processedImages.length-1];
                 const link = document.createElement('a');
-                link.href = imageUrl;
-                
-                const fileExtension = imageBlob.type.split('/')[1] || 'png';
-                link.download = `${projectName || 'image'}.${fileExtension}`;
+                link.href = image.url;
+                link.download = image.filename || `${projectName || 'image'}.png`;
                 
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                
-                URL.revokeObjectURL(imageUrl);
             } else {
+                // Múltiplas imagens para download em um arquivo ZIP
                 const zip = new JSZip();
-                
-                images.forEach((imageBlob, index) => {
-                    const fileExtension = imageBlob.type.split('/')[1] || 'png';
-                    const fileName = `${projectName || 'image'}_${index + 1}.${fileExtension}`;
-                    zip.file(fileName, imageBlob);
+
+                const fetchPromises = processedImages.map((image, index) => {
+                    const fileName = image.filename || `${projectName || 'image'}_${index + 1}.png`;
+                    return fetch(image.url)
+                        .then((response) => response.blob())
+                        .then((blob) => zip.file(fileName, blob));
                 });
-                
+    
+                await Promise.all(fetchPromises);
+
                 const zipBlob = await zip.generateAsync({ type: 'blob' });
                 const zipUrl = URL.createObjectURL(zipBlob);
-                
+
                 const link = document.createElement('a');
                 link.href = zipUrl;
                 link.download = `${projectName || 'images'}.zip`;
@@ -273,19 +288,28 @@ const Project = () => {
                     headers: { Authorization: `Bearer ${token}` },
                 }
             );
-            console.log('Process response:', processResponse);
-            // Refresh processed images after applying tools
-            const imagesResponse = await axios.get(
-                `https://p.primecog.com/api/users/projects/${proj_id}/images`,
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
-            );
-            setProcessedImages(imagesResponse.data.processed_images);
-            console.log(imagesResponse);
+            console.log(processResponse);
+            window.location.reload();
         } catch (error) {
             console.error('Error applying tools:', error);
-            alert('Error applying tools');
+        }
+    };
+
+    const updateProjName = async (newName) => {
+        try {
+            const nameResponse = await axios.put(
+                `https://p.primecog.com/api/users/projects/${proj_id}`,
+                {
+                    name: newName
+                },
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+            console.log('Project name updated:', nameResponse)
+        } catch (error) {
+            console.error('Error changing project name:', error);
+            alert('Error changing project name');
         }
     };
 
@@ -300,13 +324,17 @@ const Project = () => {
                                 type="text"
                                 defaultValue={projectName}
                                 onBlur={(e) => {
-                                    setProjectName(e.target.value);
+                                    const newName = e.target.value;
+                                    setProjectName(newName);
                                     setIsEditingName(false);
+                                    updateProjName(newName);
                                 }}
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter") {
-                                        setProjectName(e.target.value);
+                                        const newName = e.target.value;
+                                        setProjectName(newName);
                                         setIsEditingName(false);
+                                        updateProjName(newName);
                                     }
                                 }}
                                 autoFocus
@@ -366,10 +394,7 @@ const Project = () => {
                                         type="checkbox"
                                         id="removeBackground"
                                         checked={removeBackground}
-                                        onChange={(e) => {
-                                            setRemoveBackground(e.target.checked);
-                                            if (e.target.checked) handleRemoveBackgroundRelease();
-                                        }}
+                                        onChange={handleRemoveBackgroundChange}
                                     />
                                 </li>
 
@@ -379,10 +404,7 @@ const Project = () => {
                                         type="checkbox"
                                         id="grayscale"
                                         checked={greyScale}
-                                        onChange={(e) => {
-                                            setGreyScale(e.target.checked);
-                                            if (e.target.checked) handleGrayscaleRelease();
-                                        }}
+                                        onChange={handleGrayscaleChange}
                                     />
                                 </li>
 
@@ -392,10 +414,7 @@ const Project = () => {
                                         type="checkbox"
                                         id="watermark"
                                         checked={watermark}
-                                        onChange={(e) => {
-                                            setWatermark(e.target.checked);
-                                            if (e.target.checked) handleWatermarkRelease();
-                                        }}
+                                        onChange={handleWatermarkChange}
                                     />
                                 </li>
 
@@ -407,8 +426,16 @@ const Project = () => {
                                         min="0"
                                         max="255"
                                         value={binarize}
-                                        onChange={(e) => setBinarize(e.target.value)}
-                                        onBlur={handleBinarizeRelease}
+                                        onChange={(e) => {
+                                            console.log('Binarize onChange triggered:', e.target.value);
+                                            setBinarize(e.target.value);
+                                        }}
+                                        onPointerUp={(e) => {
+                                            handleBinarizeRelease();
+                                        }}
+                                        onTouchEnd={(e) => {
+                                            handleBinarizeRelease();
+                                        }}
                                     />
                                 </li>
 
@@ -421,7 +448,12 @@ const Project = () => {
                                         max="360"
                                         value={rotate}
                                         onChange={(e) => setRotate(e.target.value)}
-                                        onBlur={handleRotateRelease}
+                                        onPointerUp={(e) => {
+                                            handleRotateRelease();
+                                        }}
+                                        onTouchEnd={(e) => {
+                                            handleRotateRelease();
+                                        }}
                                     />
                                 </li>
 
@@ -437,7 +469,12 @@ const Project = () => {
                                             setBrightness(e.target.value);
                                             setIsAdjusting(true);
                                         }}
-                                        onBlur={handleBrightnessContrastRelease}
+                                        onPointerUp={(e) => {
+                                            handleBrightnessContrastRelease();
+                                        }}
+                                        onTouchEnd={(e) => {
+                                            handleBrightnessContrastRelease();
+                                        }}
                                         />
                                     </li>
     
@@ -453,7 +490,12 @@ const Project = () => {
                                                 setContrast(e.target.value);
                                                 setIsAdjusting(true);
                                             }}
-                                            onBlur={handleBrightnessContrastRelease}
+                                            onPointerUp={(e) => {
+                                                handleBrightnessContrastRelease();
+                                            }}
+                                            onTouchEnd={(e) => {
+                                                handleBrightnessContrastRelease();
+                                            }}
                                         />
                                     </li>
     
@@ -608,7 +650,7 @@ const Project = () => {
                 </div>
     
                 {showAddImage && (
-                    <ProjectAddImage onClose={() => setShowAddImage(false)} onImagesUploaded={handleImagesUploaded} />
+                    <ProjectAddImage onClose={() => {setShowAddImage(false); window.location.reload();}} onImagesUploaded={handleImagesUploaded} proj_id={proj_id} />
                 )}
             </div>
         );

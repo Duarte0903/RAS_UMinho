@@ -42,3 +42,180 @@
     margin: 0;
     word-wrap: break-word;
 }
+
+.profile-actions {
+    display: flex;
+    gap: 15px; /* Espaço entre os botões */
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.profile-button {
+    padding: 10px 20px; /* Tamanho do botão */
+    font-size: 16px; /* Tamanho do texto */
+    border: none;
+    border-radius: 5px; /* Bordas arredondadas */
+    cursor: pointer; /* Cursor de mão para indicar que é clicável */
+    transition: background-color 0.3s ease;
+}
+
+.profile-button.edit-button {
+    background-color: #9e9e9e; /* Cor cinza para "Editar Perfil" */
+    color: white; /* Cor do texto */
+}
+
+.profile-button.edit-button:hover {
+    background-color: #757575; /* Cor mais escura ao passar o mouse */
+}
+
+.profile-button.delete-button {
+    background-color: #f44336; /* Cor vermelha para "Apagar Conta" */
+    color: white; /* Cor do texto */
+}
+
+.profile-button.delete-button:hover {
+    background-color: #d32f2f; /* Cor mais escura ao passar o mouse */
+}
+
+.profile-button:disabled {
+    background-color: #ccc; /* Cor quando o botão está desabilitado */
+    cursor: not-allowed; /* Cursor indicando que não é clicável */
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3); /* Fundo escurecido */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-in-out; /* Animação suave ao abrir */
+}
+
+/* Animação de abertura */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Modal Content */
+.modal-content {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    overflow: hidden;
+    animation: slideIn 0.3s ease-out; /* Animação para o conteúdo */
+}
+
+/* Animação de slide */
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Título */
+.modal-content h4 {
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+/* Labels */
+.modal-content label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    color: #555;
+}
+
+/* Inputs */
+.modal-content input {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1.25rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #333;
+    transition: border 0.3s ease;
+}
+
+/* Efeito ao focar nos campos de entrada */
+.modal-content input:focus {
+    border-color: #ff6f61; /* Cor da borda ao focar */
+    outline: none;
+}
+
+/* Botões de ação */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.modal-actions button {
+    padding: 0.75rem 1.5rem;
+    background-color: #ff6f61;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+/* Efeito de hover nos botões */
+.modal-actions button:hover {
+    background-color: #e75a51;
+}
+
+.modal-actions button:nth-child(2) {
+    background-color: #ccc;
+    color: #333;
+}
+
+.modal-actions button:nth-child(2):hover {
+    background-color: #bbb;
+}
+
+.modal-actions button:nth-child(1) {
+    background-color: #28a745; 
+}
+
+.modal-actions button:nth-child(1):hover {
+    background-color: #218838;
+}
+
+@media (max-width: 480px) {
+    .modal-content {
+        padding: 1rem;
+        width: 90%;
+    }
+
+    .modal-actions button {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+
+

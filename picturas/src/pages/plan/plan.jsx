@@ -29,22 +29,6 @@ const Plan = () => {
                     <h2>Escolha o seu plano</h2>
                     <div className="plans-grid">
                         <div className="plan-card">
-                            <h3>Anónimo</h3>
-                            <p>Para utilizadores não registados.</p>
-                            <ul>
-                                <li>Funcionalidades básicas</li>
-                                <li>Acesso limitado</li>
-                                <li>Sem conta pessoal</li>
-                            </ul>
-                            <button
-                                className="plan-button"
-                                onClick={() => handleChangePlan('anon')}
-                                disabled={user_tier === 'anon'}>
-                                Escolher Anónimo
-                            </button>
-                        </div>
-
-                        <div className="plan-card">
                             <h3>Grátis</h3>
                             <p>Para utilizadores registados.</p>
                             <ul>
