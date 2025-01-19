@@ -32,32 +32,23 @@ class DayController:
     @staticmethod
     def increment_operations():
         """
-        Increment the user's operations count for today, respecting the daily limit.
+        Increment the user's operations count for today.
         """
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
             return {"success": False, "error": "Authorization header is missing or invalid"}, 401
 
-        # Decode the JWT
         token = auth_header.split(" ")[1]
         try:
             payload = decode_jwt(token)
             user_id = payload.get("sub")
-            user_type = payload.get("type")  # Fetch the user type to determine the limit
-        except Exception:
-            return {"success": False, "error": "Invalid or expired token"}, 401
-
-        # Define daily limits based on user type
-        limits = {
-            "anônimo": 5,
-            "gratuito": 10,
-            "premium": float("inf")  # Unlimited for premium users
-        }
-        max_operations = limits.get(user_type, 5)  # Default to `anônimo` limit
+            user_type = payload.get("type")
+        except Exception as e:
+            return {"success": False, "error": str(e)}, 402
 
         # Increment operations
         try:
-            result = DayService.increment_operations(user_id, max_operations)
+            result = DayService.increment_operations(user_id)
             if "error" in result:
                 return {"success": False, "error": result["error"]}, 403
 

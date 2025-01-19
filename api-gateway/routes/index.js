@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { validateJWT, restriction, stopanonimo, stopRegistred } = require('../authentication/authentication');
+const { validateJWT } = require('../authentication/authentication');
+const { max_operations, stop_anonimo, stop_registred, block_advanced } = require('../authorization/authorization');
 const multer = require('multer');
 const upload = multer(); // For in-memory storage; configure storage as needed
 const logger = require('./logger'); // Import the logger
@@ -41,7 +42,7 @@ router.post('/api/users', function (req, res) {
         .catch(err => handleError(res, err));
 });
 
-router.put('/api/users', validateJWT, stopanonimo, function (req, res) {
+router.put('/api/users', validateJWT, stop_anonimo, function (req, res) {
     users.update_user(req.headers, req.body.name, req.body.email, req.body.password)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
@@ -51,7 +52,7 @@ router.put('/api/users', validateJWT, stopanonimo, function (req, res) {
     - 'type' ('gratuito' ou 'premium') - tipo de plano do user
     - 'subs_type' ('monthly' ou 'annual') - tipo de subscricao escolhida
 */
-router.put('/api/users/type', validateJWT, stopanonimo, function (req, res) {
+router.put('/api/users/type', validateJWT, stop_anonimo, function (req, res) {
     let old_user_type = req.user.type;
     let new_user_type = req.body.type;
     if (old_user_type === new_user_type)
@@ -76,7 +77,7 @@ router.put('/api/users/type', validateJWT, stopanonimo, function (req, res) {
         }).catch(err => handleError(res, err));
 });
 
-router.delete('/api/users', validateJWT, stopanonimo, function (req, res) {
+router.delete('/api/users', validateJWT, stop_anonimo, function (req, res) {
     let subs_promise = subscriptions.get_subscription(req.headers);
     let projects_promise = projects.get_projects(req.headers);
     let deleted_user_promise = users.delete_user(req.headers)
@@ -90,7 +91,7 @@ router.delete('/api/users', validateJWT, stopanonimo, function (req, res) {
         }).catch(err => handleError(res, err));
 });
 
-router.delete('/api/users/anonimo', validateJWT, stopRegistred, function (req, res) {
+router.delete('/api/users/anonimo', validateJWT, stop_registred, function (req, res) {
     let projects_promise = projects.get_projects(req.headers);
     let deleted_user_promise = users.delete_user(req.headers);
 
@@ -110,37 +111,37 @@ router.get('/api/users/days', validateJWT, function (req, res) {
 
 // ------------ SUBSCRIPTIONS ------------
 
-router.get('/api/users/subscriptions', validateJWT, stopanonimo, function (req, res) {
+router.get('/api/users/subscriptions', validateJWT, stop_anonimo, function (req, res) {
     subscriptions.get_subscription(req.headers)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });
 
-router.put('/api/users/subscriptions/:subs_id', validateJWT, stopanonimo, function (req, res) {
+router.put('/api/users/subscriptions/:subs_id', validateJWT, stop_anonimo, function (req, res) {
     subscriptions.update_subscription(req.headers, req.params.subs_id, req.body.type) //state default to active
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });
 
-router.get('/api/users/subscriptions/:subs_id/payments', validateJWT, stopanonimo, function (req, res) {
+router.get('/api/users/subscriptions/:subs_id/payments', validateJWT, stop_anonimo, function (req, res) {
     subscriptions.get_payments(req.headers, req.params.subs_id)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });
 
-router.post('/api/users/subscriptions/:subs_id/payments', validateJWT, stopanonimo, function (req, res) {
+router.post('/api/users/subscriptions/:subs_id/payments', validateJWT, stop_anonimo, function (req, res) {
     subscriptions.create_payment(req.headers, req.params.subs_id, req.body.extra)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });
 
-router.put('/api/users/subscriptions/:subs_id/payments/:pay_id', validateJWT, stopanonimo, function (req, res) {
+router.put('/api/users/subscriptions/:subs_id/payments/:pay_id', validateJWT, stop_anonimo, function (req, res) {
     subscriptions.update_payment(req.headers, req.params.subs_id, req.params.pay_id, req.body.extra)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });
 
-router.delete('/api/users/subscriptions/:subs_id/payments/:pay_id', validateJWT, stopanonimo, function (req, res) {
+router.delete('/api/users/subscriptions/:subs_id/payments/:pay_id', validateJWT, stop_anonimo, function (req, res) {
     subscriptions.delete_payment(req.headers, req.params.subs_id, req.params.pay_id)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
@@ -265,13 +266,15 @@ router.get('/api/users/projects/:proj_id/tools', validateJWT, function (req, res
         .catch(err => handleError(res, err));
 });
 
-router.post('/api/users/projects/:proj_id/tools', validateJWT, function (req, res) {
+// This endpoint need an extra field on the request body - "kind": "basic" | "advanced"
+router.post('/api/users/projects/:proj_id/tools', validateJWT, block_advanced, function (req, res) {
     projects.add_tool(req.headers, req.params.proj_id, req.body.position, req.body.procedure, req.body.parameters)
-        .then(result => res.jsonp(result))
-        .catch(err => handleError(res, err));
+    .then(result => res.jsonp(result))
+    .catch(err => handleError(res, err));
 });
 
-router.put('/api/users/projects/:proj_id/tools/:tool_id', validateJWT, function (req, res) {
+// This endpoint need an extra field on the request body - "kind": "basic" | "advanced"
+router.put('/api/users/projects/:proj_id/tools/:tool_id', validateJWT, block_advanced, function (req, res) {
     projects.update_tool(req.headers, req.params.proj_id, req.params.tool_id, req.body.position, req.body.procedure, req.body.parameters)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
@@ -285,7 +288,7 @@ router.delete('/api/users/projects/:proj_id/tools/:tool_id', validateJWT, functi
 
 // ------------ PROCESS -------------
 
-router.post('/api/users/projects/:proj_id/process', validateJWT, restriction, function (req, res) {
+router.post('/api/users/projects/:proj_id/process', validateJWT, max_operations, function (req, res) {
     let proj_promise = projects.trigger_process(req.headers, req.params.proj_id);
     let days_promise = users.increment_todays_record(req.headers);
 
