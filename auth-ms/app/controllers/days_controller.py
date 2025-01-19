@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from app.services.days import DayService
-from app.utils.jwt_utils import decode_jwt
+from app.utils.jwt_utils import decode_jwt, generate_jwt
 
 class DayController:
     @staticmethod
@@ -60,6 +60,9 @@ class DayController:
             result = DayService.increment_operations(user_id, max_operations)
             if "error" in result:
                 return {"success": False, "error": result["error"]}, 403
-            return {"success": True, "day_record": result}, 200
+
+            # Generate a new JWT token
+            token = generate_jwt(user_id=user_id, user_type=user_type, num_processes=result.operations_count)
+            return {"success": True, "day_record": result, "token": token}, 200
         except Exception:
             return {"success": False, "error": "Error incrementing operations"}, 500

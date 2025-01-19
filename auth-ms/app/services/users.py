@@ -31,6 +31,22 @@ class UserService:
         return user.to_dict(exclude_password=True)
 
     @staticmethod
+    def create_user_anonimo(name, email, password_hash):
+        """
+        Create a new user.
+        :param name: Name of the user
+        :param email: Email address of the user
+        :param password_hash: Hashed password of the user
+        :return: Created user as a dictionary
+        """
+        if User.query.filter_by(email=email).first():
+            raise ValueError("Email already exists")
+
+        user = User(name=name, email=email, password_hash=password_hash, type='anonimo')
+        user.save()
+        return user.to_dict(exclude_password=True)
+
+    @staticmethod
     def update_user_name(user_id, new_name):
         """
         Update the name of a user.

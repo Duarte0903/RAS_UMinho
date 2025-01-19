@@ -52,6 +52,13 @@ def authenticate_user():
     """
     return UserController.authenticate_user()
 
+@app_router.route('/users/authenticate/anonimo', methods=['POST'])
+def authenticate_user_anonimo():
+    """
+    POST: Authenticate an anonimous user and retrieve a JWT token for his session.
+    """
+    return UserController.authenticate_user_anonimo()
+
 @app_router.route('/users', methods=['DELETE'])
 def delete_user():
     """

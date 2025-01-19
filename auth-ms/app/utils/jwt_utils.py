@@ -5,7 +5,7 @@ from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 SECRET_KEY = "picturas"  # Replace with your actual secret key
 ALGORITHM = "HS256" 
 
-def generate_jwt(user_id, user_type):
+def generate_jwt(user_id, user_type, num_processes):
     """
     Generate a JWT token for a user based on their type.
     :param user_id: ID of the user
@@ -15,6 +15,7 @@ def generate_jwt(user_id, user_type):
     payload = {
         "sub": user_id,  # Subject (user ID)
         "type": user_type,  # User type
+        "num_processes": num_processes,  # User type
         "iat": datetime.utcnow(),  # Issued at
         "exp": datetime.utcnow() + timedelta(hours=1)  # Expires in 1 hour
     }
