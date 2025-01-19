@@ -47,9 +47,20 @@ const stopanonimo = (req, res, next) => {
     next();
 }
 
+const stopRegistred = (req, res, next) => {
+    var user = req.user 
+    var type = user["type"]
+
+    if (type !== "anonimo"){
+        return res.status(401).json({ error: "I'm sorry, only anonimos here." });
+    } 
+    next();
+}
+
 // Middleware para validar o JWT
 module.exports = {
     validateJWT : validateJWT,
     restriction : restriction,
-    stopanonimo : stopanonimo
+    stopanonimo : stopanonimo,
+    stopRegistred : stopRegistred
 }
