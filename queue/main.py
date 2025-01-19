@@ -51,10 +51,15 @@ MICROSERVICES = {
         "routing_key": "requests.rotation",
         "procedure": "rotation",
     },
-        "grayscale": {
+    "grayscale": {
         "queue": "grayscale-requests",
         "routing_key": "requests.grayscale",
         "procedure": "grayscale",
+    },
+    "ocr":{
+        "queue": "ocr-requests",
+        "routing_key": "requests.ocr",
+        "procedure": "ocr",
     }
 }
 
