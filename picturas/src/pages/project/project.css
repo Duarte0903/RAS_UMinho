@@ -200,12 +200,42 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     background-color: white;
     border-radius: 12px;
     padding: 32px;  
     position: relative;
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+
+.images-display {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 24px;
+    width: 100%;
+    height: calc(100% - 80px);
+    overflow: hidden;
+}
+
+.image-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 45%;
+}
+
+.image-wrapper img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.image-label {
+    margin-top: 12px;
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 500;
 }
 
 .current-image {
