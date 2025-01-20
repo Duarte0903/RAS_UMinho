@@ -43,7 +43,7 @@ router.post('/api/users', function (req, res) {
 });
 
 router.put('/api/users', validateJWT, stop_anonimo, function (req, res) {
-    users.update_user(req.headers, req.body.name, req.body.email, req.body.password)
+    users.update_user(req.headers, req.body.name, req.body.email, req.body.oldPassword, req.body.newPassword)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });

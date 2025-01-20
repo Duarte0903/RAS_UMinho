@@ -12,7 +12,9 @@ const Profile = () => {
     const [newName, setNewName] = useState(user_name);
     const [newEmail, setNewEmail] = useState(user_email);
     const [type, setType] = useState(user_tier);
+    const [oldPassword, setOldPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false); // Para mostrar se está a enviar os dados
 
     useEffect(() => {
@@ -74,31 +76,47 @@ const Profile = () => {
         console.log(token);
 
         try {
-            const response = await axios.put(
-                "https://p.primecog.com/api/users",
-                {
-                    name: newName,
-                    email: newEmail,
-                    password: newPassword,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
+            if (newPassword === confirmPassword) {
+                const response = await axios.put(
+                    "https://p.primecog.com/api/users",
+                    {
+                        name: newName,
+                        email: newEmail,
+                        oldPassword: oldPassword,
+                        newPassword: newPassword,
                     },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+
+                // Se a resposta for bem-sucedida
+                if (response.status === 200) {
+                    alert("Perfil atualizado com sucesso");
+
+                    // Fechar o modal após a atualização
+                    setIsModalOpen(false);
+                } else {
+                    // Verificar se a resposta da API está presente no erro
+                    if (error.response) {
+                        // Verificar o código de status
+                        if (error.response.status === 403) {
+                            alert("A senha antiga está incorreta. Tente novamente.");
+                        } else {
+                            console.error("Erro ao atualizar perfil:", error.response.data);
+                            alert("Houve um erro ao atualizar o perfil.");
+                        }
+                    } else {
+                        console.error("Erro inesperado:", error);
+                        alert("Houve um problema de conexão. Tente novamente mais tarde.");
+                    }
                 }
-            );
-
-            // Se a resposta for bem-sucedida
-            if (response.status === 200) {
-                alert("Perfil atualizado com sucesso");
-
-                // Fechar o modal após a atualização
-                setIsModalOpen(false);
+                window.location.reload();
             } else {
-                console.error("Erro ao atualizar perfil:", response.data);
-                alert("Houve um erro ao atualizar o perfil.");
+                alert("Passwords do not match!");
             }
-            window.location.reload();
         } catch (error) {
             console.error("Erro:", error);
             alert("Houve um erro ao atualizar o perfil.");
@@ -164,13 +182,34 @@ const Profile = () => {
                             placeholder="Digite seu novo email"
                         />
 
-                        <label htmlFor="new-password">Nova Senha</label>
+                        <label htmlFor="new-password">Password Atual</label>
+                        <input
+                            id="old-password"
+                            type="password"
+                            value={oldPassword}
+                            onChange={(e) => setOldPassword(e.target.value)}
+                            placeholder="Digite sua nova senha"
+                        />
+                        
+                        <label htmlFor="password">Nova Password</label>
                         <input
                             id="new-password"
                             type="password"
+                            placeholder="Nova password"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
-                            placeholder="Digite sua nova senha"
+                            className="register-input"
+                            required
+                        />
+                        <label htmlFor="confirm-password">Confirm Password</label>
+                        <input
+                            id="confirm-password"
+                            type="password"
+                            placeholder="Confirme a nova password"
+                            value={confirmNewPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            className="register-input"
+                            required
                         />
 
                         <div className="modal-actions">

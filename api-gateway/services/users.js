@@ -71,7 +71,7 @@ module.exports.register_user = (name, email, password) => {
 module.exports.update_user = (reqHeaders, name, email, password) => {
     return axios.put(
         this.usersRoute('/users'),
-        { "name": name, "email": email, "password": password },
+        { "name": name, "email": email, "oldPassword": oldPassword, "newPassword": newPassword },
         createHeaders(reqHeaders)
     ).then((result) => {
         let resp = result.data

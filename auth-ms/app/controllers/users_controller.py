@@ -82,12 +82,20 @@ class UserController:
 
         # Get the new details from the request body
         data = request.get_json()
-        if not data or "name" not in data or "email" not in data or "password" not in data:
-            return {"success": False, "error": "New name, email and password are required"}, 400
+        if not data or "name" not in data or "email" not in data or "oldPassword" not in data or "newPassword" not in data:
+            return {"success": False, "error": "New name, email and oldPassword and newPassword are required"}, 400
 
         try:
+            # Verify if the oldPassword matches the password in the database
+            user = UserService.get_user_by_id(user_id)
+            if not user:
+                return {"success": False, "error": "User not found"}, 404
+
+            if not verify_password(data["oldPassword"], user.password):  # Assuming verify_password compares plaintext with the stored hash
+                return {"success": False, "error": "Old password is incorrect"}, 403
+
             # Hash the new password
-            hashed_password = hash_password(data["password"])
+            hashed_password = hash_password(data["newPassword"])
 
             updated_user = UserService.update_user(user_id, data["name"], data["email"], hashed_password)
             if not updated_user:
