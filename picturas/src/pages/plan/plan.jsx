@@ -5,15 +5,43 @@ import { useSessionStore } from '../../stores/session_store';
 import { Link } from 'react-router-dom';
 
 const Plan = () => {
-    const { user_id, user_tier, changePlan } = useSessionStore();
+    const { user_tier, changePlan } = useSessionStore();
+    const { token } = useSessionStore();
     let current_plan = "";
     if (user_tier === 'anon') current_plan = "Anónimo";
     else if (user_tier === 'free') current_plan = "Grátis";
     else if (user_tier === 'premium') current_plan = "Premium";
 
-    const handleChangePlan = (plan) => {
-        changePlan(plan); // Change plan in the store
-        alert(`Your plan has been changed to ${plan}`);
+    const handleChangePlan = async (plan, subs_type="monthly") => {
+        console.log(token);
+
+        try {
+            const response = await axios.put(
+                "https://p.primecog.com/api/users/type",
+                {
+                    type: plan,
+                    subs_type: subs_type
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            // Se a resposta for bem-sucedida
+            if (response.status === 200) {
+                changePlan(plan); // Change plan in the store
+                alert(`Your plan has been changed to ${plan}`);
+            } else {
+                console.error("Erro:", error);
+                alert("Houve um erro ao atualizar o plano.");
+            }
+            window.location.reload();
+        } catch (error) {
+            console.error("Erro:", error);
+            alert("Houve um erro ao atualizar o plano.");
+        }
     };
 
     return (
@@ -42,7 +70,7 @@ const Plan = () => {
                             ) : (
                                 <button
                                     className="plan-button"
-                                    onClick={() => handleChangePlan('free')}
+                                    onClick={() => handleChangePlan('gratuito')}
                                     disabled={user_tier === 'free'}>
                                     Escolher Grátis
                                 </button>
@@ -62,12 +90,20 @@ const Plan = () => {
                                     Registe-se para escolher Premium
                                 </Link>
                             ) : (
-                                <button
-                                    className="plan-button"
-                                    onClick={() => handleChangePlan('premium')}
-                                    disabled={user_tier === 'premium'}>
-                                    Escolher Premium
-                                </button>
+                                <div>
+                                    <button
+                                        className="plan-button"
+                                        onClick={() => handleChangePlan('premium', 'monthly')}
+                                        disabled={user_tier === 'premium'}>
+                                        Escolher Premium Mensal
+                                    </button>
+                                    <button
+                                        className="plan-button"
+                                        onClick={() => handleChangePlan('premium', 'annual')}
+                                        disabled={user_tier === 'premium'}>
+                                        Escolher Premium Anual
+                                    </button>
+                                </div>
                             )}
                         </div>
                     </div>

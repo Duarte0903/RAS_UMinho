@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./profile.css";
 import Navbar from "../../components/navbar/navbar";
 import { useSessionStore } from '../../stores/session_store';
@@ -16,8 +17,13 @@ const Profile = () => {
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false); // Para mostrar se está a enviar os dados
+    const [isDeleted, setIsDeleted] = useState(false);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
+        if (isDeleted) return;
+
         const fetchUserData = async () => {
             try {
                 const userResponse = await axios.get('https://p.primecog.com/api/users/',
@@ -31,12 +37,12 @@ const Profile = () => {
                 setType(userResponse.data.user.type);
                 
             } catch (error) {
-                console.error('Error fetching project:', error);
+                console.error('Error fetching user data: ', error);
             }
         };
     
         fetchUserData();
-    }, [token]);
+    }, [token, isDeleted]);
 
     const handleEditProfile = () => {
         setIsModalOpen(true);  // Abre o modal para editar o perfil
@@ -50,18 +56,20 @@ const Profile = () => {
         if (!confirmDelete) return;
     
         try {
-            const response = await axios.delete("https://p.primecog.com/api/users", {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            const response = await axios.delete(
+                'https://p.primecog.com/api/users', 
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
     
             if (response.status === 200) {
                 alert("Conta excluída com sucesso.");
-                
-                // Redirecionar para login ou limpar sessão
-                // Exemplo: Logout da aplicação
-                window.location.href = "/login";
+                setIsDeleted(true);
+                // Redirecionar para a página de registo
+                navigate("/register");
             } else {
                 alert("Erro ao excluir a conta. Tente novamente.");
             }
@@ -115,7 +123,7 @@ const Profile = () => {
                 }
                 window.location.reload();
             } else {
-                alert("Passwords do not match!");
+                alert("New Password does not match the confirmation!");
             }
         } catch (error) {
             console.error("Erro:", error);
@@ -182,7 +190,7 @@ const Profile = () => {
                             placeholder="Digite seu novo email"
                         />
 
-                        <label htmlFor="new-password">Password Atual</label>
+                        <label htmlFor="old-password">Password Atual</label>
                         <input
                             id="old-password"
                             type="password"
@@ -191,7 +199,7 @@ const Profile = () => {
                             placeholder="Digite sua nova senha"
                         />
                         
-                        <label htmlFor="password">Nova Password</label>
+                        <label htmlFor="new-password">Nova Password</label>
                         <input
                             id="new-password"
                             type="password"
@@ -206,7 +214,7 @@ const Profile = () => {
                             id="confirm-password"
                             type="password"
                             placeholder="Confirme a nova password"
-                            value={confirmNewPassword}
+                            value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             className="register-input"
                             required

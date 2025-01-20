@@ -10,9 +10,10 @@ services:
       - rabbitmq-data:/var/lib/rabbitmq/
       - rabbitmq-logs:/var/log/rabbitmq/
     healthcheck:
-      test: rabbitmq-diagnostics check_port_connectivity
-      interval: 5s
-      timeout: 30s
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 30s    # Aumenta o intervalo entre as tentativas
+      retries: 10       # Aumenta o número de tentativas
+      timeout: 30s      # Aumenta o tempo limite da verificação
 
   queue-setup:
     build: ./queue/
@@ -147,8 +148,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
     depends_on:
-      - rabbitmq
-      - queue-setup
+      rabbitmq:
+        condition: service_healthy
 
 
   watermark-tool-ms:
@@ -159,8 +160,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
     depends_on:
-      - rabbitmq
-      - queue-setup
+      rabbitmq:
+        condition: service_healthy
 
   binary-tool-ms:
     build: ./picturas-binarization-tool-ms
@@ -170,8 +171,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
     depends_on:
-      - rabbitmq
-      - queue-setup
+      rabbitmq:
+        condition: service_healthy
 
   brightness-tool-ms:
     build: ./picturas-brightness-tool-ms
@@ -181,8 +182,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
     depends_on:
-      - rabbitmq
-      - queue-setup
+      rabbitmq:
+        condition: service_healthy
 
   resize-tool-ms:
     build: ./picturas-resize-tool-ms
@@ -192,8 +193,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
     depends_on:
-      - rabbitmq
-      - queue-setup
+      rabbitmq:
+        condition: service_healthy
 
   removebg-tool-ms:
     build: ./picturas-removebg-tool-ms
@@ -203,8 +204,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
     depends_on:
-      - rabbitmq
-      - queue-setup
+      rabbitmq:
+        condition: service_healthy
 
   rotation-tool-ms:
     build: ./picturas-rotation-tool-ms
@@ -214,8 +215,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
     depends_on:
-      - rabbitmq
-      - queue-setup
+      rabbitmq:
+        condition: service_healthy
 
   grayscale-tool-ms:
     build: ./picturas-grayscale-tool-ms
@@ -225,8 +226,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
     depends_on:
-      - rabbitmq
-      - queue-setup
+      rabbitmq:
+        condition: service_healthy
 
   ocr-tool-ms:
     build: ./picturas-ocr-tool-ms
@@ -236,8 +237,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
     depends_on:
-      - rabbitmq
-      - queue-setup
+      rabbitmq:
+        condition: service_healthy
 
 volumes:
   rabbitmq-data:
