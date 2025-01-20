@@ -72,7 +72,7 @@ class DayController:
 
             LOGGER.info("8")
             # Generate a new JWT token
-            token = generate_jwt(user_id=user_id, user_type=user_type, num_processes=result.operations_count)
+            token = generate_jwt(user_id=user_id, user_type=user_type, num_processes=result["operations_count"])
             LOGGER.info("9")
             return {"success": True, "day_record": result, "token": token}, 200
         except Exception as e:

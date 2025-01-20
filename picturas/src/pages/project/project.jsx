@@ -16,7 +16,7 @@ const Project = () => {
     };
     const proj_id = getProjectId();
     
-    const { token } = useSessionStore();
+    const { token, changeToken } = useSessionStore();
     const location = useLocation();
     let { projectName: initialProjectName, images: initialImages } = location.state || {};
     
@@ -37,6 +37,7 @@ const Project = () => {
     
     let [toolPosition, setToolPosition] = useState(0);
     const [isAdjusting, setIsAdjusting] = useState(false);
+    const [processId, setProcessId] = useState(false);
 
     // Tool states
     let [dimensions, setDimensions] = useState('');
@@ -345,23 +346,26 @@ const Project = () => {
             );
 
             if (processResponse.status === 200) {
-                alert('Sem imagens ou tools para processar');
-            } else if (processResponse.status === 202) {
-                alert('Processamento iniciado');
-                console.log('Process started successfully');
+                alert('Processamento iniciado com sucesso');
+                console.log('Process started successfully: ', processResponse.data);
+
+                if(processResponse.data.process) {
+                    setProcessId(processResponse.data.process.id);
+                }
                 
-                //incrementar num operacoes
-                //const opsResponse = await axios.post(
-                //    `https://p.primecog.com/api/users/days`,
-                //    {},
-                //    { headers: { Authorization: `Bearer ${token}` } }
-                //);
-                //if (opsResponse.status === 200) {
-                //    console.log(opsResponse.data)
-                //    //guardar novo token
-                //} else {
-                //    console.log("parabens tiveste uma operacao de graça")
-                //}
+                //incrementar num operacoes do user
+                const opsResponse = await axios.post(
+                    `https://p.primecog.com/api/users/days`,
+                    {},
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+                if (opsResponse.status === 200) {
+                    //guardar novo token
+                    changeToken(opsResponse.data.token)
+                    console.log(opsResponse.data)
+                } else {
+                    console.log("parabens tiveste uma operacao de graça")
+                }
 
             } else {
                 console.err(processResponse);

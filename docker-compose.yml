@@ -240,6 +240,18 @@ services:
       rabbitmq:
         condition: service_healthy
 
+
+
+  frontend:
+      build: ./picturas  # Diretório do frontend
+      container_name: frontend
+      restart: always
+      ports:
+        - "5005:5005"
+      depends_on:
+        - api-gateway  # Opcional: Dependência para o API Gateway ou outros serviços
+
+
 volumes:
   rabbitmq-data:
   rabbitmq-logs:

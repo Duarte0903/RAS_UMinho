@@ -17,7 +17,7 @@ const limiter = rateLimit({
     max: 500, // Limite de 100 requisições por IP
     message: {
         error: "Too many requests",
-        details: "You have exceeded the 100 requests in 15 minutes limit!"
+        details: "You have exceeded the 500 requests in 15 minutes limit!"
     },
     standardHeaders: true, // Inclui informações de rate limit nos cabeçalhos `RateLimit-*`
     legacyHeaders: false,  // Desativa cabeçalhos obsoletos `X-RateLimit-*`
