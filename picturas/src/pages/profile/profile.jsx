@@ -40,9 +40,34 @@ const Profile = () => {
         setIsModalOpen(true);  // Abre o modal para editar o perfil
     };
 
-    const handleDeleteAccount = () => {
-        console.log("Apagar Conta clicado");
-    };
+    const handleDeleteAccount = async () => {
+        const confirmDelete = window.confirm(
+            "Tem certeza de que deseja excluir sua conta? Esta ação não pode ser desfeita."
+        );
+    
+        if (!confirmDelete) return;
+    
+        try {
+            const response = await axios.delete("https://p.primecog.com/api/users", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+    
+            if (response.status === 200) {
+                alert("Conta excluída com sucesso.");
+                
+                // Redirecionar para login ou limpar sessão
+                // Exemplo: Logout da aplicação
+                window.location.href = "/login";
+            } else {
+                alert("Erro ao excluir a conta. Tente novamente.");
+            }
+        } catch (error) {
+            console.error("Erro ao excluir conta:", error);
+            alert("Ocorreu um erro ao tentar excluir sua conta. Por favor, tente novamente mais tarde.");
+        }
+    };    
 
     const handleProfileUpdate = async () => {
         setLoading(true); // Define o estado de carregamento para true ao enviar a requisição
