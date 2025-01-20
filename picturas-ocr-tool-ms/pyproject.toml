@@ -12,6 +12,7 @@ pydantic = "^2.10.3"
 pillow = "^11.0.0"
 pytesseract = "^0.3.13"
 poetry = "^2.0.1"
+boto3 = "^1.35.97"
 
 
 [tool.poetry.group.dev.dependencies]
