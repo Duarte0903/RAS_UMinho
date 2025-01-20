@@ -2,6 +2,7 @@ from flask import request, Blueprint
 from app.controllers.project_controller import ProjectController
 from app.controllers.image_controller import ImageController
 from app.controllers.tool_controller import ToolController
+from app.controllers.process_controller import ProcessController
 app_router = Blueprint('app_router', __name__)
 
 # Routes for projects management
@@ -82,14 +83,18 @@ def process_project(project_id):
     """
     POST: Start the processing workflow for a specific project.
     """
-    return ProjectController.process_project(project_id)
+    return ProcessController.process_project(project_id)
 
-@app_router.route('/projects/<project_id>/status', methods=['GET'])
-def get_project_status(project_id):
+@app_router.route('/projects/<project_id>/process/<process_id>', methods=['GET', 'PUT'])
+def get_project_status(project_id, process_id):
     """
     GET: Retrieve the processing status of a specific project.
+    PUT: Stop the process of a specific project.
     """
-    return ProjectController.get_project_status(project_id)
+    if request.method == 'PUT':
+        return ProcessController.cancel_process(project_id, process_id)
+    else: # Default to GET for retrieving the status of a process
+        return ProcessController.get_process_status(project_id, process_id)
 
 # Route to serve images from MinIO through the backend
 @app_router.route('/images/<bucket>/<path:filename>', methods=['GET'])

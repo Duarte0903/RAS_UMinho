@@ -275,16 +275,32 @@ module.exports.trigger_process = (reqHeaders, proj_id) => {
     });
 };
 
-module.exports.process_status = (reqHeaders, proj_id) => {
+module.exports.process_status = (reqHeaders, proj_id, process_id) => {
     return axios.get(
-        this.projectsRoute('/projects/' + proj_id + '/status'),
+        this.projectsRoute('/projects/' + proj_id + '/process/' + process_id),
         createHeaders(reqHeaders)
     ).then((result) => {
         let resp = result.data
         if (resp != null) {
             return resp
         } else {
-            throw new Error('Error: Invalid project -> ', proj_id)
+            throw new Error('Error: Invalid process -> ', process_id)
+        }
+    }).catch((err) => {
+        throw err
+    });
+}
+
+module.exports.cancel_process = (reqHeaders, proj_id, process_id) => {
+    return axios.put(
+        this.projectsRoute('/projects/' + proj_id + '/process/' + process_id),
+        createHeaders(reqHeaders)
+    ).then((result) => {
+        let resp = result.data
+        if (resp != null) {
+            return resp
+        } else {
+            throw new Error('Error: Invalid process -> ', process_id)
         }
     }).catch((err) => {
         throw err

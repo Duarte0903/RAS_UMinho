@@ -289,19 +289,24 @@ router.delete('/api/users/projects/:proj_id/tools/:tool_id', validateJWT, functi
 // ------------ PROCESS -------------
 
 router.post('/api/users/projects/:proj_id/process', validateJWT, max_operations, function (req, res) {
-    let proj_promise = projects.trigger_process(req.headers, req.params.proj_id);
-    let days_promise = users.increment_todays_record(req.headers);
-
-    Promise.all([proj_promise, days_promise])
-        .then(([proj, days]) => {
-            proj["token"] = days["token"];
+    projects.trigger_process(req.headers, req.params.proj_id)
+        .then(proj => {
+            users.increment_todays_record(req.headers)
+                .then(resp => {
+                    if (resp.token) proj["token"] = resp.token;
+                })
             res.jsonp(proj)
-        })
+        }).catch(err => handleError(res, err));
+});
+
+router.get('/api/users/projects/:proj_id/process/:process_id', validateJWT, function (req, res) {
+    projects.process_status(req.headers, req.params.proj_id, req.params.process_id)
+        .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });
 
-router.get('/api/users/projects/:proj_id/status', validateJWT, function (req, res) {
-    projects.process_status(req.headers, req.params.proj_id)
+router.put('/api/users/projects/:proj_id/process/:process_id', validateJWT, function (req, res) {
+    projects.cancel_process(req.headers, req.params.proj_id, req.params.process_id)
         .then(result => res.jsonp(result))
         .catch(err => handleError(res, err));
 });
