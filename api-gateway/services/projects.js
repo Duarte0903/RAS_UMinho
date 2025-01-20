@@ -11,9 +11,9 @@ module.exports.get_projects = (reqHeaders) => {
     return axios.get(
         this.projectsRoute('/projects'),
         createHeaders(reqHeaders)
-    ).then((result) => {
+    ).then(result => {
         let resp = result.data
-        if (resp != null) {
+        if (resp !== null) {
             return resp
         } else {
             throw new Error('Error: No projects found from user')

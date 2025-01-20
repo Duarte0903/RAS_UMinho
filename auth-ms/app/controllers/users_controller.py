@@ -4,7 +4,17 @@ from app.services.days import DayService
 from app.utils.jwt_utils import decode_jwt, generate_jwt
 from app.utils.hashing_utils import hash_password, verify_password  # Utility for password hashing and verification
 import random, string, uuid
+import logging
+import sys
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout),  # Log to stdout
+    ]
+)
+LOGGER = logging.getLogger(__name__)
 
 class UserController:
     @staticmethod
@@ -87,24 +97,25 @@ class UserController:
 
         try:
             # Verify if the oldPassword matches the password in the database
-            user = UserService.get_user_by_id(user_id)
-            if not user:
+            oldPassword = UserService.get_password_by_id(user_id)
+            if not oldPassword:
                 return {"success": False, "error": "User not found"}, 404
 
-            if not verify_password(data["oldPassword"], user.password):  # Assuming verify_password compares plaintext with the stored hash
+            if not verify_password(data["oldPassword"], oldPassword):  # Assuming verify_password compares plaintext with the stored hash
                 return {"success": False, "error": "Old password is incorrect"}, 403
 
             # Hash the new password
             hashed_password = hash_password(data["newPassword"])
 
             updated_user = UserService.update_user(user_id, data["name"], data["email"], hashed_password)
+            
             if not updated_user:
                 return {"success": False, "error": "User not found"}, 404
             return {"success": True, "user": updated_user}, 200
         except ValueError as e:
             return {"success": False, "error": str(e)}, 400
-        except Exception:
-            return {"success": False, "error": "Error updating name"}, 500
+        except Exception as ex:
+            return {"success": False, "error": f"Error updating user: {str(ex)}"}, 500
 
     @staticmethod
     def authenticate_user():
