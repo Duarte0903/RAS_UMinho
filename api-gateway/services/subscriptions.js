@@ -10,12 +10,7 @@ module.exports.get_subscription = (reqHeaders) => {
         this.subscriptionsRoute('/subscriptions'),
         createHeaders(reqHeaders)
     ).then((result) => {
-        let resp = result.data
-        if (resp != null) {
-            return resp
-        } else {
-            throw new Error('Error: Invalid user')
-        }
+        return result.data;
     }).catch((err) => {
         throw err
     });

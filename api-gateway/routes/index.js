@@ -78,29 +78,29 @@ router.put('/api/users/type', validateJWT, stop_anonimo, function (req, res) {
 });
 
 router.delete('/api/users', validateJWT, stop_anonimo, function (req, res) {
-    let subs_promise = subscriptions.get_subscription(req.headers);
-    let projects_promise = projects.get_projects(req.headers);
-    let deleted_user_promise = users.delete_user(req.headers)
-    
-    Promise.all([subs_promise, projects_promise, deleted_user_promise])
-        .then(([subs, projects, deleted_user]) => {
-            res.jsonp(deleted_user)
-            console.log(projects);
-            if(subs._id) subscriptions.delete_subscription(req.headers, subs._id);
-            if(projs.projects && projs.projects.length > 0) projects.delete_projects_user(req.headers);
+    users.delete_user(req.headers)
+        .then(user => {
+            subscriptions.get_subscription(req.headers)
+                .then(subs => {
+                    if (subs && subs._id) subscriptions.delete_subscription(req.headers, subs._id);
+                })
+            projects.get_projects(req.headers)
+                .then(projs => {
+                    if (projs && projs.projects && projs.projects.length > 0) projects.delete_projects_user(req.headers);
+                })
+            res.jsonp(user)
         }).catch(err => handleError(res, err));
 });
 
 router.delete('/api/users/anonimo', validateJWT, stop_registred, function (req, res) {
-    let projects_promise = projects.get_projects(req.headers);
-    let deleted_user_promise = users.delete_user(req.headers);
-
-    Promise.all([projects_promise, deleted_user_promise])
-        .then(([projs, deleted_user]) => {
-            res.jsonp(deleted_user)
-            if(projs.projects && projs.projects.length > 0) projects.delete_projects_user(req.headers);
-        })
-        .catch(err => handleError(res, err));
+    users.delete_user(req.headers)
+        .then(user => {
+            projects.get_projects(req.headers)
+                .then(projs => {
+                    if (projs && projs.projects && projs.projects.length > 0) projects.delete_projects_user(req.headers);
+                })
+            res.jsonp(user)
+        }).catch(err => handleError(res, err));
 });
 
 router.get('/api/users/days', validateJWT, function (req, res) {
@@ -113,7 +113,16 @@ router.get('/api/users/days', validateJWT, function (req, res) {
 
 router.get('/api/users/subscriptions', validateJWT, stop_anonimo, function (req, res) {
     subscriptions.get_subscription(req.headers)
-        .then(result => res.jsonp(result))
+        .then(result => {
+            if (result) {
+                res.jsonp(result)
+            } else {
+                res.jsonp({
+                    "subscription": [],
+                    "success": true
+                })
+            }
+        })
         .catch(err => handleError(res, err));
 });
 
