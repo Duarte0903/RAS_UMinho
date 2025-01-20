@@ -19,6 +19,7 @@ class ProcessController:
     
     @staticmethod
     def process_project(project_id):
+        # Validate Authorization Header
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
             logger.error("Authorization header is missing or invalid")
@@ -30,43 +31,50 @@ class ProcessController:
             user_id = payload.get("sub")
             logger.info(f"Decoded JWT for user_id: {user_id}")
         except Exception as e:
-            logger.error("Error decoding token: %s", str(e))
+            logger.error(f"Error decoding token: {str(e)}")
             return {"success": False, "error": str(e)}, 401
 
+        # Validate Project Ownership
         logger.info(f"Processing project {project_id} for user {user_id}")
         project = ProjectService.get_project_by_id_and_user(project_id, user_id)
         if not project:
             logger.warning(f"Project {project_id} not found or not owned by user {user_id}")
             return {"success": False, "error": "Project not found"}, 404
 
+        # Validate Tools
         tools = ToolService.get_tools_by_project(project_id)
         if not tools:
             logger.info(f"No tools defined for project {project_id}")
             return {"success": True, "message": "No tools defined. Process done."}, 200
 
         tools = sorted(tools, key=lambda t: t["position"])
+
+        # Validate Images
         src_bucket = f"{project_id}-src"
         out_bucket = f"{project_id}-out"
-
         images = list_objects_in_bucket(src_bucket)
         if len(images) == 0:
             logger.info(f"No images defined for project {project_id}")
             return {"success": True, "message": "No images defined. Process done."}, 200
-        
-        # Call the service to create the process
+
+        # Create Process
         try:
             process = ProcessService.create_process(proj_id=project_id, num_images=len(images))
         except Exception as e:
-            return {"success": False, "error": str(e)}, 500
+            logger.error(f"Failed to create process for project {project_id}: {str(e)}")
+            return {"success": False, "error": f"Failed to create process: {str(e)}"}, 500
 
         def background_task(app_context):
-            # Use the Flask application context in the thread
             with app_context:
                 try:
+                    if not process:
+                        logger.error(f"Process not initialized for project {project_id}. Aborting.")
+                        return
+
                     for image in images:
-                        # Verificar se pediu para parar o processo
-                        process = ProcessService.get_process_by_id(process.id)
-                        if process.stop:
+                        # Check if process is stopped
+                        current_process = ProcessService.get_process_by_id(process.get("id"))
+                        if current_process.get("stop"):
                             logger.info(f"Process stopped by user for project {project_id}")
                             return
 
@@ -99,30 +107,28 @@ class ProcessController:
                         for img in intermediate_images:
                             bucket_name, object_name = img.split("/", 1)
                             delete_object(bucket_name, object_name)
-                        
-                        # Atualizar progresso do processo
+
+                        # Update Process Progress
                         ProcessService.update_process(
                             project_id=project_id,
-                            process_id=process.id,
+                            process_id=process.get("id"),
                             increment_by=1
                         )
 
                     logger.info(f"Processing completed successfully for project {project_id}")
                 except Exception as e:
                     logger.error(f"Failed to process project {project_id}: {str(e)}")
-        
-        # Pass the current app context to the thread
+
+        # Start Background Task
         app_context = current_app._get_current_object().app_context()
         thread = Thread(target=background_task, args=(app_context,))
         thread.start()
 
-        # Return immediately
         return {
             "success": True,
             "message": "Project processing started successfully",
-            "process": process
+            "process": process,
         }, 202
-
     @staticmethod
     def wait_for_task_completion(task_id, timeout=30):
         """

@@ -20,6 +20,10 @@ export const useSessionStore = create(
       changePlan: (user_tier, token) => {
         set({ user_tier, token });
       },
+
+      changeToken: (token) => {
+        set({ token });
+      },
     
       changeSubs: (subs_id, subs_type, subs_state) => {
         set({ subs_id, subs_type, subs_state});
