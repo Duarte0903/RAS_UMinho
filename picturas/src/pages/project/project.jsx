@@ -8,28 +8,33 @@ import { useSessionStore } from "../../stores/session_store";
 import axios from 'axios';
 
 const Project = () => {
+
     const getProjectId = () => {
         const path = window.location.hash;
         const parts = path.split('/'); 
         return parts[parts.length - 1]; 
     };
-
     const proj_id = getProjectId();
+    
     const { token } = useSessionStore();
     const location = useLocation();
     let { projectName: initialProjectName, images: initialImages } = location.state || {};
+    
+    let [projectName, setProjectName] = useState(initialProjectName || "Untitled Project");
+    const [isEditingName, setIsEditingName] = useState(false);
+    
     let [images, setImages] = useState(initialImages || []);
     let [processedImages, setProcessedImages] = useState([]);
     const [currentImage, setCurrentImage] = useState(0);
     const [currentProcessedImage, setCurrentProcessedImage] = useState(0);
     const imageUrl = images && images[currentImage] ? images[currentImage] : null;
     const processedImageUrl = processedImages &&  processedImages.length > 0 ? processedImages[processedImages.length - 1] : null;
+
     const [showAdvancedTools, setShowAdvancedTools] = useState(false);
     const [showBasicTools, setShowBasicTools] = useState(true);
     const [isDownloading, setIsDownloading] = useState(false);
     const [showAddImage, setShowAddImage] = useState(false);
-    let [projectName, setProjectName] = useState(initialProjectName || "Untitled Project");
-    const [isEditingName, setIsEditingName] = useState(false);
+    
     let [toolPosition, setToolPosition] = useState(0);
     const [isAdjusting, setIsAdjusting] = useState(false);
 
@@ -57,17 +62,25 @@ const Project = () => {
                         headers: { Authorization: `Bearer ${token}` }
                     }
                 );
-                setProjectName(nameResponse.data.project.name);
-
+                if (nameResponse.status === 200) {
+                    setProjectName(nameResponse.data.project.name);
+                } else {
+                    alert("Erro ao obter projeto. Tente novamente.");
+                }
+                
                 const imagesResponse = await axios.get(
                     `https://p.primecog.com/api/users/projects/${proj_id}/images`, 
                     {
                         headers: { Authorization: `Bearer ${token}` }
                     }
                 );
-                setImages(imagesResponse.data.original_images);
-                setProcessedImages(imagesResponse.data.processed_images);
-                console.log(imagesResponse.data);
+                if (imagesResponse.status === 200) {
+                    setImages(imagesResponse.data.original_images);
+                    setProcessedImages(imagesResponse.data.processed_images);
+                    console.log(imagesResponse.data);
+                } else {
+                    alert("Erro ao obter imagens do projeto. Tente novamente.");
+                }
             } catch (error) {
                 console.error('Error fetching project:', error);
             }
@@ -86,6 +99,20 @@ const Project = () => {
     const handleNameEdit = () => {
         setIsEditingName(true);
     };
+    
+    const updateProjName = async (newName) => {
+        try {
+            const nameResponse = await axios.put(
+                `https://p.primecog.com/api/users/projects/${proj_id}`,
+                { name: newName },
+                { headers: { Authorization: `Bearer ${token}` }, }
+            );
+            console.log('Project name updated:', nameResponse)
+        } catch (error) {
+            console.error('Error changing project name:', error);
+            alert('Erro a atualizar o nome do projeto');
+        }
+    };
 
     const handleImagesUploaded = async () => {
         const imagesResponse = await axios.get(
@@ -98,13 +125,6 @@ const Project = () => {
         setProcessedImages(imagesResponse.data.processed_images);
         console.log(imagesResponse.data);
         window.location.reload();
-    };
-
-    const handleDimensionChange = (event) => {
-        setDimensions(event.target.value);
-        const [width, height] = event.target.value.split('x').map((val) => parseInt(val));
-        setImgWidth(width);
-        setImgHeight(height);
     };
 
     const handleInputRelease = async (tool, kind, value) => {
@@ -138,6 +158,13 @@ const Project = () => {
         } catch (error) {
             console.error(`Error applying ${tool}:`, error);
         }
+    };
+    
+    const handleDimensionChange = (event) => {
+        setDimensions(event.target.value);
+        const [width, height] = event.target.value.split('x').map((val) => parseInt(val));
+        setImgWidth(width);
+        setImgHeight(height);
     };
 
     // Individual tool handlers
@@ -224,7 +251,8 @@ const Project = () => {
 
     const handleDownload = async () => {
         if (!processedImages || processedImages.length === 0) {
-            console.error('No images to download');
+            console.error('No processed images to download');
+            alert('Nenhuma imagem foi processada ainda para fazer o download.');
             return;
         }
     
@@ -268,48 +296,78 @@ const Project = () => {
             }
         } catch (error) {
             console.error('Error downloading images:', error);
-            alert('Error during download');
+            alert('Erro durante o download das imagens');
         } finally {
             setIsDownloading(false);
         }
     };
 
-    const handleCurrentImageDelete = () => {
-        setImages(prevImages => prevImages.filter((_, index) => index !== currentImage));
-        setCurrentImage(0);
+    const handleCurrentImageDelete = async () => {
+        // Get the current image
+        const currentImageDetails = images[currentImage];
+        if (!currentImageDetails) {
+            alert("Nenhuma imagem selecionada para remover.");
+            return;
+        }
+        // Extract `image_id` from current image
+        const { image_id } = currentImageDetails;
+
+        // delete current image on backend
+        try {
+            const response = await axios.delete(
+                `https://p.primecog.com/api/users/projects/${proj_id}/images/${image_id}`,
+                { headers: { Authorization: `Bearer ${token}`, }, }
+            );
+    
+            if (response.status === 200) {
+                alert("Imagem excluída com sucesso.");
+                // delete image on the frontend list
+                setImages(prevImages => prevImages.filter((_, index) => index !== currentImage));
+                // Atualizar a imagem atual para o próximo índice válido
+                setCurrentImage((prevIndex) => prevIndex > 0 ? prevIndex - 1 : 0 );
+            } else {
+                alert("Erro ao excluir a imagem. Tente novamente.");
+            }
+        } catch (error) {
+            console.error("Erro ao excluir imagem:", error);
+            alert("Ocorreu um erro ao tentar excluir a sua imagem. Por favor, tente novamente mais tarde.");
+        }
     };
 
     const applyTools = async () => {
         try {
             const processResponse = await axios.post(
                 `https://p.primecog.com/api/users/projects/${proj_id}/process`,
-                {},
                 {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: { Authorization: `Bearer ${token}` }
                 }
             );
-            console.log(processResponse);
+
+            if (processResponse.status === 200) {
+                alert('Sem imagens ou tools para processar');
+            } else if (processResponse.status === 202) {
+                alert('Processamento iniciado');
+                console.log('Process started successfully');
+                
+                //incrementar num operacoes
+                const opsResponse = await axios.post(
+                    `https://p.primecog.com/api/users/days`,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+                if (opsResponse.status === 200) {
+                    console.log(opsResponse.data)
+                    //guardar novo token
+                } else {
+                    console.log("parabens tiveste uma operacao de graça")
+                }
+
+            } else {
+                console.err(processResponse);
+                alert("Erro ao iniciar o processamento.")
+            }
             window.location.reload();
         } catch (error) {
-            console.error('Error applying tools:', error);
-        }
-    };
-
-    const updateProjName = async (newName) => {
-        try {
-            const nameResponse = await axios.put(
-                `https://p.primecog.com/api/users/projects/${proj_id}`,
-                {
-                    name: newName
-                },
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                }
-            );
-            console.log('Project name updated:', nameResponse)
-        } catch (error) {
-            console.error('Error changing project name:', error);
-            alert('Error changing project name');
+            console.error('Error starting process:', error);
         }
     };
 

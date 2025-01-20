@@ -80,10 +80,10 @@ const NewProjectDetails = ({ onClose }) => {
                 { name: projectName },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-    
             const proj_id = projectResponse.data.project.id;
-    
+            
             // Upload images
+            let imagesPosted = 0;
             for (const image of images) {
                 if (!(image instanceof File)) {
                     console.error('Invalid file:', image);
@@ -98,7 +98,7 @@ const NewProjectDetails = ({ onClose }) => {
                     console.log(`${key}:`, value);
                 });
     
-                await axios.post(
+                const imgResponse = await axios.post(
                     `https://p.primecog.com/api/users/projects/${proj_id}/images`,
                     formData,
                     {
@@ -107,8 +107,28 @@ const NewProjectDetails = ({ onClose }) => {
                         },
                     }
                 );
-    
-                console.log(`Imagem enviada com sucesso: ${image.name}`);
+
+                if (imgResponse.status === 200) {
+                    imagesPosted++;
+                } else {
+                    console.error('Erro ao enviar uma imagem: ', imgResponse.data || imgResponse.error);
+                }
+            }
+
+            // Se nao consegui adicionar nenhuma imagem, apaga o projeto acabado de criar
+            if (imagesPosted === 0) {
+                alert("Nenhuma imagem adicionada... a eliminar o projeto.")
+
+                const response = await axios.delete(
+                    `https://p.primecog.com/api/users/projects/${proj_id}`,
+                    { headers: { Authorization: `Bearer ${token}`, }, }
+                );
+
+                if (response.status === 200) {
+                    window.location.reload();
+                } else {
+                    alert("Erro ao remover o projeto. Tente novamente.");
+                }
             }
             onClose();
             window.location.reload();

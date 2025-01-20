@@ -9,6 +9,7 @@ const users = require('../services/users');
 const subscriptions = require('../services/subscriptions');
 const projects = require('../services/projects');
 const FormData = require('form-data'); // Required for creating FormData in Node.js
+const sharp = require('sharp');
 
 // Helper function to handle errors
 function handleError(res, err) {
@@ -109,6 +110,12 @@ router.get('/api/users/days', validateJWT, function (req, res) {
         .catch(err => handleError(res, err));
 });
 
+router.post('/api/users/days', validateJWT, function (req, res) {
+    users.increment_todays_record(req.headers)
+        .then(result => res.jsonp(result))
+        .catch(err => handleError(res, err));
+});
+
 // ------------ SUBSCRIPTIONS ------------
 
 router.get('/api/users/subscriptions', validateJWT, stop_anonimo, function (req, res) {
@@ -194,7 +201,7 @@ router.post(
     '/api/users/projects/:proj_id/images',
     validateJWT,
     upload.single('file'), // Ensure the frontend uses 'file' as the FormData key
-    function (req, res) {
+    async function (req, res) {
         if (!req.file) {
             logger.error('No file provided in the request', {
                 route: '/api/users/projects/:proj_id/images',
@@ -204,13 +211,28 @@ router.post(
             return res.status(400).json({ error: "No file provided" });
         }
 
-        logger.info('Received file', {
-            fileName: req.file.originalname        });
-
+        logger.info('Received file', { fileName: req.file.originalname });
+        
         var user = req.user 
         var type = user["type"]
-
-        if(req.file.size >=1000 && type === "anonimo") return res.status(401).json({ error: "Image too big!" })
+        if (type === "anonimo") {
+            try {
+                // Get image dimensions using sharp
+                const imageMetadata = await sharp(req.file.buffer).metadata();
+                const { width, height } = imageMetadata;
+                
+                // Check if image exceeds the allowed dimensions
+                if (width > 100 || height > 100) {
+                    return res.status(401).json({ error: "Image dimensions exceed the allowed limit of 500x500 pixels" });
+                }
+            } catch (err) {
+                logger.error('Error processing image', {
+                    error: err.message,
+                    stack: err.stack,
+                });
+                return res.status(500).json({ error: "Error processing image" });
+            }
+        }
 
         // Prepare FormData to send to the backend
         const formData = new FormData();
@@ -299,13 +321,8 @@ router.delete('/api/users/projects/:proj_id/tools/:tool_id', validateJWT, functi
 
 router.post('/api/users/projects/:proj_id/process', validateJWT, max_operations, function (req, res) {
     projects.trigger_process(req.headers, req.params.proj_id)
-        .then(proj => {
-            users.increment_todays_record(req.headers)
-                .then(resp => {
-                    if (resp.token) proj["token"] = resp.token;
-                })
-            res.jsonp(proj)
-        }).catch(err => handleError(res, err));
+        .then(proj => res.jsonp(proj))
+        .catch(err => handleError(res, err));
 });
 
 router.get('/api/users/projects/:proj_id/process/:process_id', validateJWT, function (req, res) {

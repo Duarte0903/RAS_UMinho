@@ -144,6 +144,7 @@ module.exports.increment_todays_record = (reqHeaders) => {
         createHeaders(reqHeaders)
     ).then((result) => {
         let resp = result.data
+        console.log("increment: ", resp)
         if (resp != null) {
             return resp
         } else {
