@@ -141,6 +141,7 @@ module.exports.get_todays_record = (reqHeaders) => {
 module.exports.increment_todays_record = (reqHeaders) => {
     return axios.post(
         this.usersRoute('/days'),
+        {},
         createHeaders(reqHeaders)
     ).then((result) => {
         let resp = result.data

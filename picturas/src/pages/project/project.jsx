@@ -338,6 +338,7 @@ const Project = () => {
         try {
             const processResponse = await axios.post(
                 `https://p.primecog.com/api/users/projects/${proj_id}/process`,
+                {},
                 {
                     headers: { Authorization: `Bearer ${token}` }
                 }
@@ -350,16 +351,17 @@ const Project = () => {
                 console.log('Process started successfully');
                 
                 //incrementar num operacoes
-                const opsResponse = await axios.post(
-                    `https://p.primecog.com/api/users/days`,
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-                if (opsResponse.status === 200) {
-                    console.log(opsResponse.data)
-                    //guardar novo token
-                } else {
-                    console.log("parabens tiveste uma operacao de graça")
-                }
+                //const opsResponse = await axios.post(
+                //    `https://p.primecog.com/api/users/days`,
+                //    {},
+                //    { headers: { Authorization: `Bearer ${token}` } }
+                //);
+                //if (opsResponse.status === 200) {
+                //    console.log(opsResponse.data)
+                //    //guardar novo token
+                //} else {
+                //    console.log("parabens tiveste uma operacao de graça")
+                //}
 
             } else {
                 console.err(processResponse);

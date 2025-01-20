@@ -257,7 +257,7 @@ module.exports.trigger_process = (reqHeaders, proj_id) => {
     const headers = createHeaders(reqHeaders);
     return axios.post(
         this.projectsRoute('/projects/' + proj_id + '/process'),
-        null, // No data for this POST request
+        {}, // No data for this POST request
         headers // Properly set headers
     ).then((result) => {
         let resp = result.data;

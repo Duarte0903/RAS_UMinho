@@ -38,7 +38,7 @@ class ProcessService:
             raise ValueError(f"Invalid proj_id: {proj_id}")
 
         # Create and save the process
-        process = Process(proj_id=proj_id, total=num_images)
+        process = Process(project_id=proj_id, total=num_images)
         process.save()
         return process.to_dict()
     

@@ -1,9 +1,7 @@
 import jwt
 from datetime import datetime, timedelta
-from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
 SECRET_KEY = "picturas"  # Replace with your actual secret key
-ALGORITHM = "HS256" 
 
 def generate_jwt(user_id, user_type, num_processes):
     """
@@ -23,15 +21,16 @@ def generate_jwt(user_id, user_type, num_processes):
 
 def decode_jwt(token):
     """
-    Decode and validate a JWT token.
-    :param token: JWT token string
-    :return: Decoded payload as a dictionary
-    :raises: Exception if the token is invalid or expired
+    Decodes and verifies the JWT.
+
+    :param token: JWT token from the Authorization header.
+    :return: Decoded payload if the token is valid.
+    :raises: Exception if the token is invalid or expired.
     """
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         return payload
-    except ExpiredSignatureError:
+    except jwt.ExpiredSignatureError:
         raise Exception("Token has expired")
-    except InvalidTokenError:
+    except jwt.InvalidTokenError:
         raise Exception("Invalid token")

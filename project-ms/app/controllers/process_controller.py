@@ -55,7 +55,7 @@ class ProcessController:
         
         # Call the service to create the process
         try:
-            process = ProcessService.create_process(proj_id=project_id, total=len(images))
+            process = ProcessService.create_process(proj_id=project_id, num_images=len(images))
         except Exception as e:
             return {"success": False, "error": str(e)}, 500
 
@@ -120,7 +120,7 @@ class ProcessController:
         return {
             "success": True,
             "message": "Project processing started successfully",
-            "process": process.to_dict()
+            "process": process
         }, 202
 
     @staticmethod
