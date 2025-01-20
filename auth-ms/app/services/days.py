@@ -18,12 +18,11 @@ class DayService:
         return day_record.to_dict() if day_record else None
 
     @staticmethod
-    def increment_operations(user_id, max_operations):
+    def increment_operations(user_id):
         """
         Increment the operations count for a user on a specific day.
         Ensures the user does not exceed their daily limit.
         :param user_id: ID of the user
-        :param max_operations: Maximum allowed operations for the user
         :return: Updated day's record as a dictionary or an error message
         """
         operation_date = date.today()
@@ -34,10 +33,6 @@ class DayService:
             day_record = Day(user_id=user_id, operation_date=operation_date, operations_count=1)
             day_record.save()
             return day_record.to_dict()
-
-        # Check if the user has exceeded the daily limit
-        if day_record.operations_count >= max_operations:
-            return {"error": "Daily limit reached"}
 
         # Increment the operation count
         day_record.operations_count += 1

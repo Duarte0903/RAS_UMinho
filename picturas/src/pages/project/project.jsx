@@ -107,9 +107,9 @@ const Project = () => {
         setImgHeight(height);
     };
 
-    const handleInputRelease = async (tool, value) => {
-        if (!tool || !value) {
-            console.error('Missing required parameters:', { tool, value });
+    const handleInputRelease = async (tool, kind, value) => {
+        if (!tool || !kind || !value) {
+            console.error('Missing required parameters:', { tool, kind, value });
             return;
         }
 
@@ -117,7 +117,8 @@ const Project = () => {
             const toolRequest = {
                 position: toolPosition,
                 procedure: tool,
-                parameters: value
+                parameters: value,
+                kind: kind
             };
 
             const response = await axios.post(
@@ -142,7 +143,7 @@ const Project = () => {
     // Individual tool handlers
     const handleResizeRelease = () => {
         if (imgWidth !== 'auto' || imgHeight !== 'auto') {
-            handleInputRelease('resize', {
+            handleInputRelease('resize', 'basic', {
                 width: parseInt(imgWidth),
                 height: parseInt(imgHeight)
             });
@@ -152,27 +153,27 @@ const Project = () => {
     const handleRemoveBackgroundChange = (e) => {
         setRemoveBackground(e.target.checked);
         if (e.target.checked) {
-            handleInputRelease('removebg', {});
+            handleInputRelease('removebg', 'basic', {});
         }
     };
     
     const handleGrayscaleChange = (e) => {
         setGreyScale(e.target.checked);
         if (e.target.checked) {
-            handleInputRelease('grayscale', {});
+            handleInputRelease('grayscale', 'basic', {});
         }
     };
     
     const handleWatermarkChange = (e) => {
         setWatermark(e.target.checked);
         if (e.target.checked) {
-            handleInputRelease('watermark', {});
+            handleInputRelease('watermark', 'basic', {});
         }
     };
 
     const handleBinarizeRelease = () => {
         if (binarize > 0) {
-            handleInputRelease('binary', {
+            handleInputRelease('binary', 'basic', {
                 threshold: parseInt(binarize)
             });
         }
@@ -180,7 +181,7 @@ const Project = () => {
 
     const handleRotateRelease = () => {
         if (rotate !== 0) {
-            handleInputRelease('rotation', {
+            handleInputRelease('rotation', 'basic', {
                 angle: parseInt(rotate)
             });
         }
@@ -188,7 +189,7 @@ const Project = () => {
 
     const handleBrightnessContrastRelease = () => {
         if (isAdjusting) {
-            handleInputRelease('brightness_contrast', {
+            handleInputRelease('brightness_contrast', 'basic', {
                 brightness: parseInt(brightness),
                 contrast: parseInt(contrast)
             });
@@ -198,7 +199,7 @@ const Project = () => {
 
     const handleBezelRelease = () => {
         if (beselWidth > 0) {
-            handleInputRelease('bezel', {
+            handleInputRelease('bezel', 'basic', {
                 bezelColor: String(beselColor),
                 bezelThickness: parseInt(beselWidth)
             });
