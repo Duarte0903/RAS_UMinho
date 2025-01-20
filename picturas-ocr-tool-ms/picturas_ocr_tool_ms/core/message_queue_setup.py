@@ -9,6 +9,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def message_queue_connect() -> tuple[pika.BlockingConnection, BlockingChannel]:
+    
     parameters = pika.ConnectionParameters(
         host=RABBITMQ_HOST,
         port=RABBITMQ_PORT,

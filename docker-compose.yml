@@ -6,7 +6,6 @@ services:
     ports:
       - "15672:15672" # Optional. Makes RabbitMQ dashboard available on host: active for debug / management purposes
       - "5672:5672"
-
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq/
       - rabbitmq-logs:/var/log/rabbitmq/
@@ -228,6 +227,7 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+
   ocr-tool-ms:
     build: ./picturas-ocr-tool-ms
     container_name: ocr-tool-ms

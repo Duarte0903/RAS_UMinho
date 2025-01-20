@@ -1,9 +1,8 @@
 from io import BytesIO
-from PIL import Image, ImageOps
+from PIL import Image
 import logging
 import boto3
 from .core.tool import Tool
-import os
 from .config import MINIO_ACCESS_KEY, MINIO_SECRET_KEY
 from .binary_request_message import BinaryParameters
 
