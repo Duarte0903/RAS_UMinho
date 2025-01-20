@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "picturas-watermark-tool-ms"
+name = "picturas-ocr-tool-ms"
 version = "0.1.0"
-description = "PictuRAS microservice (tool) that applies a watermark to an input image, generating a new watermarked output image."
+description = "PictuRAS microservice (tool) that extracts text from an input image, generating a string with the text extracted."
 authors = ["Afonso Costa <d13690@di.uminho.pt>", "Paulo Sousa <d7157@di.uminho.pt>"]
 readme = "README.md"
 
@@ -11,6 +11,7 @@ pika = "^1.3.2"
 pydantic = "^2.10.3"
 pillow = "^11.0.0"
 pytesseract = "^0.3.13"
+poetry = "^2.0.1"
 
 
 [tool.poetry.group.dev.dependencies]
