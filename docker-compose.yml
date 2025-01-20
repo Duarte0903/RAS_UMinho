@@ -147,8 +147,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
+      - queue-setup
 
 
   watermark-tool-ms:
@@ -159,8 +159,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
+      - queue-setup
 
   binary-tool-ms:
     build: ./picturas-binarization-tool-ms
@@ -170,8 +170,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
+      - queue-setup
 
   brightness-tool-ms:
     build: ./picturas-brightness-tool-ms
@@ -181,8 +181,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
+      - queue-setup
 
   resize-tool-ms:
     build: ./picturas-resize-tool-ms
@@ -192,8 +192,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
+      - queue-setup
 
   removebg-tool-ms:
     build: ./picturas-removebg-tool-ms
@@ -203,8 +203,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
+      - queue-setup
 
   rotation-tool-ms:
     build: ./picturas-rotation-tool-ms
@@ -214,8 +214,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
+      - queue-setup
 
   grayscale-tool-ms:
     build: ./picturas-grayscale-tool-ms
@@ -225,8 +225,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
+      - queue-setup
 
   ocr-tool-ms:
     build: ./picturas-ocr-tool-ms
@@ -236,8 +236,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - PICTURAS_LOG_LEVEL=INFO  # change / remove in production
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
+      - queue-setup
 
 volumes:
   rabbitmq-data:
