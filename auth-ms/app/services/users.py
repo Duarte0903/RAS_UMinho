@@ -15,6 +15,16 @@ class UserService:
         return user.to_dict() if user else None
 
     @staticmethod
+    def get_password_by_id(user_id):
+        """
+        Retrieve a user's password by the user's ID.
+        :param user_id: UUID of the user
+        :return: User's hashed password or None if not found
+        """
+        user = User.query.filter_by(id=user_id).first()
+        return user.password_hash if user else None
+
+    @staticmethod
     def create_user(name, email, password_hash):
         """
         Create a new user.
