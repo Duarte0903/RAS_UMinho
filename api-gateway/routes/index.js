@@ -64,7 +64,7 @@ router.put('/api/users/type', validateJWT, stop_anonimo, function (req, res) {
                 .then(subs => {
                     if (new_user_type === 'premium') {
                         // Reativar subscrição existente
-                        subscriptions.update_subscription(req.headers, subs._id, req.body.subs.type, 'active');
+                        subscriptions.update_subscription(req.headers, subs._id, req.body.subs_type, 'active');
                     } else {
                         // Tornar a subscrição inativa
                         subscriptions.update_subscription(req.headers, subs._id, subs.type, 'inactive');

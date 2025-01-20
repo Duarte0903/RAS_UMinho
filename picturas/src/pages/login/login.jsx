@@ -18,10 +18,7 @@ const Login = () => {
 
             login(user.email, user.name, user.type, user.id, token);
 
-            console.log('login successfull', email, token);
-
             navigate('/home');
-            console.log('Navigating to /home');
         } catch (error) {
             if (error.response) {
                 const { status, data } = error.response;
@@ -43,12 +40,11 @@ const Login = () => {
     const handleAnon = async () => {
         try {
             const anonResponse = await axios.post('https://p.primecog.com/api/users/authenticate/anonimo')
-            console.log(anonResponse.data);
             const { token, user } = anonResponse.data;
             login(user.email, user.name, user.type, user.id, token);
             navigate('/home');
         } catch (error) {
-            console.log(error)
+            console.err(error)
         }
     };
 

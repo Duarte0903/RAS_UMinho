@@ -81,8 +81,6 @@ const Profile = () => {
 
     const handleProfileUpdate = async () => {
         setLoading(true); // Define o estado de carregamento para true ao enviar a requisição
-        console.log(token);
-
         try {
             if (newPassword === confirmPassword) {
                 const response = await axios.put(
