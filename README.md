@@ -1,11 +1,32 @@
-# Inclusão de um Microsserviço
+<p align="center">
+  <img src="https://github.com/Duarte0903/DSS_UMinho/blob/main/EEUMLOGO.png"/>
+</p>
+
+<h1 align="center">Requisitos e Arquiteturas de Software - 2024/2025</h1>
+<h2 align="center">Trabalho Prático - PictuRAS</h2>
+
+## Sobre
+
+A PictuRAS é uma aplicação web de processamento de imagens desenvolvida no âmbito da cadeira de Requisitos e Arquiteturas de Software. A aplicação dispões das seguintes funcionalidades:
+
+- Ajustes de brilho e contraste
+- Extração de texto (OCR)
+- Remoção de fundo
+- Adição de marca d'água (watermark)
+- Bordas coloridas
+- Grey Scale
+- Binarização
+- Alterar dimensões
+- Rotação
+
+## Inclusão de um Microsserviço
 
 A estrutura vai manter-se igual entre as várias pastas de microsserviços, vamos apontar apenas as alterações. Vamos utilizar o microsserviço de Binarização que neste momento está feito com base no exemplo dos profs e adaptar para a nossa estrutura.
 
-## poetry.lock && pyproject.toml && .style.yapf
+### poetry.lock && pyproject.toml && .style.yapf
 Copiem estes ficheiros de por exemplo picturas-binary-tool, se não vai dar erro.
 
-## .env.example
+### .env.example
 Alterar apenas os campos `RABBITMQ_REQUESTS_QUEUE_NAME` e `PICTURAS_MS_NAME` para o nome do microsserviço:
 
 ```
@@ -16,7 +37,7 @@ PICTURAS_MS_NAME=picturas-binarization-tool-ms
 ```
 Atenção: o nome da queue deve ser igual neste campo e na main.py da queue.
 
-## Dockerfile
+### Dockerfile
 Basta alterar as duas últimas instruções para dar match com o nome da folder dentro do microsserviço (que contém os "_") e executar o ficheiro correto
 
 ```yaml
@@ -27,13 +48,13 @@ ENTRYPOINT ["python", "-m", "picturas_binarization_tool_ms.main"]
 
 Atenção também à versão do python, tem de ser a 11 nos dois campos.
 
-## picturas_<tool>_tool_ms
+### picturas_<tool>_tool_ms
 Aqui vamos incluir os vários ficheiros que tínhamos do exemplo do prof.
 
-### <tool>_request_message.py, <tool>_result_message.py, core
+#### <tool>_request_message.py, <tool>_result_message.py, core
 Estes ficheiros é só copiar.
 
-### <tool>_tool.py
+#### <tool>_tool.py
 Aqui vamos ter de integrar o S3, uma vez que no exemplo do prof ele guardava as imagens localmente.
 Para isso no init adicionamos o setup do MinIO:
 ```python
@@ -91,7 +112,7 @@ Também é necessário acrescentar no fim o seguinte método:
 
 ```
 
-### config.py
+#### config.py
 É preciso acrescentar as vars do MinIO
 
 ```
@@ -99,7 +120,7 @@ MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "admin")
 MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "admin123")
 ``` 
 
-## /queue 
+### /queue 
 Adicionar o campo correspondente ao microsserviço.
 ```python
 "binary": {
@@ -109,7 +130,7 @@ Adicionar o campo correspondente ao microsserviço.
     },
 ```
 
-### docker-compose
+#### docker-compose
 Adicionar uma instrução relativa ao microsserviço, basta copiar a seguinte
 ```yaml
   binary-tool-ms:
